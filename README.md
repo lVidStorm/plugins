@@ -1,4 +1,4 @@
-!DO NOT DOWNLOAD FINISHED JAR FILES FROM FORKS!
+!DO NOT DOWNLOAD JAR FILES FROM FORKS!
 =====
 # Risk notice
 Like any other code that you find on this platform you should inspect it and **know what you're running at your own risk.**
