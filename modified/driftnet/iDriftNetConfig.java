@@ -17,7 +17,17 @@ public interface iDriftNetConfig extends Config {
             return "Start at the driftnet area\n" +
                     "MUST HAVE DRIFTNET IN INVENTORY OR STORED WITH THE NPC";
         }
-
+        @ConfigItem(
+                keyName = "disclaimer",
+                name = "disclaimer",
+                description = "",
+                position = 0
+        )
+        default String disclaimer() {
+                return "Originally MOCROSOFT's Driftnet plugin, modified\n" +
+                        "to \n" +
+                        "with help from MrPecan";
+        }
         @ConfigItem(
                 position = 1,
                 keyName = "showNetStatus",

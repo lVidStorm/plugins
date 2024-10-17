@@ -21,7 +21,17 @@ public interface iNmzConfig extends Config {
                 "Make sure you have already set up your hard dream once!\n" +
                 "Make sure to turn on AUTO RETALIATE!";
     }
-
+    @ConfigItem(
+            keyName = "disclaimer",
+            name = "disclaimer",
+            description = "",
+            position = 0
+    )
+    default String disclaimer() {
+        return "Originally MOCROSOFT's NMZ plugin, modified\n" +
+                "to \n" +
+                "";
+    }
     @ConfigSection(
             name = "General",
             description = "General",

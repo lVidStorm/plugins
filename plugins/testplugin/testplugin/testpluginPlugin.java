@@ -19,7 +19,7 @@ import java.awt.*;
 import static net.runelite.client.plugins.microbot.util.Global.sleep;
 
 @PluginDescriptor(
-        name = PluginDescriptor.Default + "testplugin",
+        name = "<html>[<font color=#ff00ff>§</font>] " + "testplugin",
         description = "Storm's test plugin",
         tags = {"testing", "microbot"},
         enabledByDefault = false

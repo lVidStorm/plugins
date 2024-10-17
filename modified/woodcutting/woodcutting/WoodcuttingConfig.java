@@ -16,7 +16,17 @@ public interface WoodcuttingConfig extends Config {
             position = 0
     )
     String generalSection = "general";
-
+    @ConfigItem(
+            keyName = "disclaimer",
+            name = "disclaimer",
+            description = "",
+            position = 0
+    )
+    default String disclaimer() {
+        return "Originally Nate's AutoWoodCutting, modified\n" +
+                "to add grouping for trees, and better handling of\n" +
+                "items not to drop";
+    }
     @ConfigItem(
             keyName = "Tree",
             name = "Tree",

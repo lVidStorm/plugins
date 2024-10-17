@@ -26,7 +26,17 @@ public interface iThievingConfig extends Config {
             position = 0
     )
     String generalSection = "general";
-
+    @ConfigItem(
+            keyName = "disclaimer",
+            name = "disclaimer",
+            description = "",
+            position = 0
+    )
+    default String disclaimer() {
+        return "Originally MOCROSOFT's Thieving plugin, modified\n" +
+                "to \n" +
+                "";
+    }
     @ConfigItem(
             keyName = "Npc",
             name = "Npc",

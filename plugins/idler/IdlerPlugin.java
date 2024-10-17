@@ -13,7 +13,7 @@ import javax.inject.Inject;
 import java.awt.*;
 
 @PluginDescriptor(
-        name = PluginDescriptor.Default + "Idler",
+        name = "<html>[<font color=#ff00ff>§</font>] " + "Idler",
         description = "Microbot idler plugin",
         tags = {"idler", "microbot"},
         enabledByDefault = false
