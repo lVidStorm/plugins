@@ -1,0 +1,63 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>net.runelite</groupId>
+        <artifactId>runelite-parent</artifactId>
+        <version>1.10.41-SNAPSHOT</version> <!-- Ensure this matches the version in the parent POM -->
+        <relativePath>../../../../../../../../../../../../pom.xml</relativePath> <!-- Path to parent POM -->
+    </parent>
+
+    <artifactId>useonobject</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <!-- Inherit Runelite API and client dependencies from parent POM if defined there -->
+        <!-- Additional dependencies specific to useonobject -->
+        <dependency>
+            <groupId>net.runelite</groupId>
+            <artifactId>runelite-api</artifactId>
+            <version>1.10.41-SNAPSHOT</version> <!-- Replace with the actual version of Runelite you're using -->
+            <scope>provided</scope>
+        </dependency>
+        <!-- Runelite Client dependency -->
+        <dependency>
+            <groupId>net.runelite</groupId>
+            <artifactId>client</artifactId>
+            <version>1.10.41-SNAPSHOT</version> <!-- Replace with the actual version of Runelite you're using -->
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <plugins>
+            <!-- JAR Plugin Configuration -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>net.runelite.client.plugins.microbot.storm.plugins.useonobject.src.main.java.useonobjectPlugin</mainClass>
+                        </manifest>
+                    </archive>
+                    <includes>
+                        <include>**/*.class</include>
+                    </includes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
