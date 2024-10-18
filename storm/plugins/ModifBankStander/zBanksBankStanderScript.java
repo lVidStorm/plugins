@@ -7,6 +7,7 @@ import net.runelite.client.plugins.microbot.Script;
 import net.runelite.client.plugins.microbot.util.bank.Rs2Bank;
 import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
+import net.runelite.client.plugins.microbot.util.inventory.Rs2Item;
 import net.runelite.client.plugins.microbot.util.keyboard.Rs2Keyboard;
 import net.runelite.client.plugins.microbot.util.npc.Rs2Npc;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
@@ -125,7 +126,7 @@ public class zBanksBankStanderScript extends Script {
                 //Rs2Bank.useBank();
                 //sleep(calculateSleepDuration());
             }
-            sleepUntil(() -> bankIsOpen);
+            boolean i = sleepUntilTrue(() -> bankIsOpen, random(67,97), 18000);
             sleep(61,97);
             if (firstItemId != null && secondItemId != null && !config.supercombat()) {
                 Rs2Bank.depositAllExcept(firstItemId, secondItemId, thirdItemId, fourthItemId);
@@ -136,9 +137,9 @@ public class zBanksBankStanderScript extends Script {
             }
             boolean b = sleepUntilTrue(() -> !Rs2Inventory.isFull(), 100, 6000);
             sleep(100,300);
+            if (!checkBankCount()) { return false; }
             // Check the type of first item identifier
             if (firstItemId != null) {
-                //TODO check item quantities as well~
                 // User has inputted the item id for the first item.
                 if (Rs2Bank.hasItem(firstItemId) && !Rs2Inventory.hasItem(firstItemId)) {
                     // Withdraw Item 1 Qty
@@ -147,7 +148,7 @@ public class zBanksBankStanderScript extends Script {
                 }
             } else {
                 // User has inputted the item identifier for the first item.
-                if (Rs2Bank.hasItem(firstItemIdentifier)&& !Rs2Inventory.hasItem(firstItemIdentifier)) {
+                if (Rs2Bank.hasItem(firstItemIdentifier) && !Rs2Inventory.hasItem(firstItemIdentifier)) {
                     // Withdraw Item 1 Qty
                     Rs2Bank.withdrawX(true, firstItemIdentifier, firstItemQuantity);
                     sleep(100,300);
@@ -255,7 +256,7 @@ public class zBanksBankStanderScript extends Script {
                 while(this.isRunning() && bankIsOpen && (System.currentTimeMillis()-bankCloseTime<32000)) {
                     closeBank();
                     //System.out.println("Sending close bank click @ "+System.currentTimeMillis());
-                    boolean i = sleepUntilTrue(() -> !bankIsOpen, random(60, 97), 5000);
+                    boolean z = sleepUntilTrue(() -> !bankIsOpen, random(60, 97), 5000);
                     //System.out.println("Time to detect bank closed : "+(System.currentTimeMillis()-bankCloseTime));
                     sleep(calculateSleepDuration() - 10);
                 }
@@ -276,11 +277,12 @@ public class zBanksBankStanderScript extends Script {
         //System.out.println("Combine items started @ "+System.currentTimeMillis());
         // Check if we have the items, if not, fetch them
         if (!hasItems()) {
-
             boolean fetchedItems = fetchItems();
             if (!fetchedItems) {
                 Microbot.showMessage("Unsufficient items found.");
-                sleep(5000);
+                while(this.isRunning()){
+                    sleep(300,3000);
+                }
             }
             return false; // Return false to indicate that items are being fetched
         }
@@ -387,6 +389,46 @@ public class zBanksBankStanderScript extends Script {
         if (bankIsOpen) {
             Rs2Widget.clickChildWidget(786434, 11);
         }
+    }
+    public boolean checkBankCount(){
+        if(!Rs2Bank.isOpen()){
+            openBank();
+            boolean i = sleepUntilTrue(() -> bankIsOpen, random(67,97), 18000);
+            sleep(200,600);
+        }
+        System.out.println("Attempting to check first item");
+        System.out.println("First item quantitiy == "+(Rs2Bank.bankItems.stream().filter(item -> item.id == firstItemId).mapToInt(item -> item.quantity).sum())+"/"+config.firstItemQuantity());
+        if (firstItemId != null && (Rs2Bank.bankItems.stream().filter(item -> item.id == firstItemId).mapToInt(item -> item.quantity).sum())<config.firstItemQuantity()) {
+            System.out.println("Failing here for some reason");
+            return false;
+        } else if (firstItemId == null && Rs2Bank.count(firstItemIdentifier)<config.firstItemQuantity()) {
+            System.out.println("Oh. You dumbass.");
+            return false;
+        }
+        System.out.println("Attempting to check second item");
+        System.out.println("Second item quantitiy == "+(Rs2Bank.bankItems.stream().filter(item -> item.id == secondItemId).mapToInt(item -> item.quantity).sum())+"/"+config.secondItemQuantity());
+        if (secondItemId != null && (Rs2Bank.bankItems.stream().filter(item -> item.id == secondItemId).mapToInt(item -> item.quantity).sum())<config.secondItemQuantity()) {
+            return false;
+        } else if (secondItemId == null && Rs2Bank.count(secondItemIdentifier)<config.secondItemQuantity()) {
+            return false;
+        }
+        if(config.supercombat()) {
+            System.out.println("Attempting to check third item");
+            System.out.println("Third item quantitiy == "+(Rs2Bank.bankItems.stream().filter(item -> item.id == thirdItemId).mapToInt(item -> item.quantity).sum())+"/"+config.thirdItemQuantity());
+            if (thirdItemId != null && (Rs2Bank.bankItems.stream().filter(item -> item.id == thirdItemId).mapToInt(item -> item.quantity).sum())<config.thirdItemQuantity()) {
+                return false;
+            } else if (thirdItemId == null && Rs2Bank.count(thirdItemIdentifier) < config.thirdItemQuantity()) {
+                return false;
+            }
+            System.out.println("Attempting to check fourth item");
+            System.out.println("Fourth item quantitiy == "+(Rs2Bank.bankItems.stream().filter(item -> item.id == fourthItemId).mapToInt(item -> item.quantity).sum())+"/"+config.fourthItemQuantity());
+            if (fourthItemId != null && (Rs2Bank.bankItems.stream().filter(item -> item.id == fourthItemId).mapToInt(item -> item.quantity).sum())<config.fourthItemQuantity()) {
+                return false;
+            } else if (fourthItemId == null && Rs2Bank.count(fourthItemIdentifier) < config.fourthItemQuantity()) {
+                return false;
+            }
+        }
+        return true;
     }
     // method to parse string to integer, returns null if parsing fails
     public static Integer TryParseInt(String text) {
