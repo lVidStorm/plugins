@@ -122,7 +122,8 @@ public class zBanksBankStanderScript extends Script {
         if (!hasItems()) {
             if (!bankIsOpen) {
                 // Open Bank
-                openBank();
+                Rs2Bank.openBank();
+                //openBank();
                 //Rs2Bank.useBank();
                 //sleep(calculateSleepDuration());
             }
@@ -397,7 +398,7 @@ public class zBanksBankStanderScript extends Script {
             sleep(200,600);
         }
         System.out.println("Attempting to check first item");
-        System.out.println("First item quantitiy == "+(Rs2Bank.bankItems.stream().filter(item -> item.id == firstItemId).mapToInt(item -> item.quantity).sum())+"/"+config.firstItemQuantity());
+        //System.out.println("First item quantitiy == "+(Rs2Bank.bankItems.stream().filter(item -> item.id == firstItemId).mapToInt(item -> item.quantity).sum())+"/"+config.firstItemQuantity());
         if (firstItemId != null && (Rs2Bank.bankItems.stream().filter(item -> item.id == firstItemId).mapToInt(item -> item.quantity).sum())<config.firstItemQuantity()) {
             System.out.println("Failing here for some reason");
             return false;
@@ -406,7 +407,7 @@ public class zBanksBankStanderScript extends Script {
             return false;
         }
         System.out.println("Attempting to check second item");
-        System.out.println("Second item quantitiy == "+(Rs2Bank.bankItems.stream().filter(item -> item.id == secondItemId).mapToInt(item -> item.quantity).sum())+"/"+config.secondItemQuantity());
+        //System.out.println("Second item quantitiy == "+(Rs2Bank.bankItems.stream().filter(item -> item.id == secondItemId).mapToInt(item -> item.quantity).sum())+"/"+config.secondItemQuantity());
         if (secondItemId != null && (Rs2Bank.bankItems.stream().filter(item -> item.id == secondItemId).mapToInt(item -> item.quantity).sum())<config.secondItemQuantity()) {
             return false;
         } else if (secondItemId == null && Rs2Bank.count(secondItemIdentifier)<config.secondItemQuantity()) {
@@ -414,14 +415,14 @@ public class zBanksBankStanderScript extends Script {
         }
         if(config.supercombat()) {
             System.out.println("Attempting to check third item");
-            System.out.println("Third item quantitiy == "+(Rs2Bank.bankItems.stream().filter(item -> item.id == thirdItemId).mapToInt(item -> item.quantity).sum())+"/"+config.thirdItemQuantity());
+            //System.out.println("Third item quantitiy == "+(Rs2Bank.bankItems.stream().filter(item -> item.id == thirdItemId).mapToInt(item -> item.quantity).sum())+"/"+config.thirdItemQuantity());
             if (thirdItemId != null && (Rs2Bank.bankItems.stream().filter(item -> item.id == thirdItemId).mapToInt(item -> item.quantity).sum())<config.thirdItemQuantity()) {
                 return false;
             } else if (thirdItemId == null && Rs2Bank.count(thirdItemIdentifier) < config.thirdItemQuantity()) {
                 return false;
             }
             System.out.println("Attempting to check fourth item");
-            System.out.println("Fourth item quantitiy == "+(Rs2Bank.bankItems.stream().filter(item -> item.id == fourthItemId).mapToInt(item -> item.quantity).sum())+"/"+config.fourthItemQuantity());
+            //System.out.println("Fourth item quantitiy == "+(Rs2Bank.bankItems.stream().filter(item -> item.id == fourthItemId).mapToInt(item -> item.quantity).sum())+"/"+config.fourthItemQuantity());
             if (fourthItemId != null && (Rs2Bank.bankItems.stream().filter(item -> item.id == fourthItemId).mapToInt(item -> item.quantity).sum())<config.fourthItemQuantity()) {
                 return false;
             } else if (fourthItemId == null && Rs2Bank.count(fourthItemIdentifier) < config.fourthItemQuantity()) {

@@ -89,7 +89,7 @@ public interface WoodcuttingConfig extends Config {
             position = 1
     )
     default String itemsToBank() {
-        return "";
+        return "axe,tinderbox";
     }
     @ConfigItem(
             keyName = "Antiban plugin",

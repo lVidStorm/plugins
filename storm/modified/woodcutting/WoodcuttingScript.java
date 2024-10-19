@@ -159,7 +159,8 @@ public class WoodcuttingScript extends Script {
                 Rs2Inventory.use(config.TREE().getLog());
             });
         }
-        sleepUntil(() -> (!isFiremake() && Rs2Player.waitForXpDrop(Skill.FIREMAKING)) || cannotLightFire, 5000);
+        //TODO need to set something here to check if the player is not animating / something
+        sleepUntil(() -> (!isFiremake() && Rs2Player.waitForXpDrop(Skill.FIREMAKING)) || cannotLightFire || !Rs2Player.isAnimating(random(600,900)), 100000);
     }
 
     private WorldPoint fireSpot(int distance) {
