@@ -244,5 +244,15 @@ public interface zBanksBankStanderConfig extends Config {
     default boolean withdrawAll() {
         return false;
     }
+    @ConfigItem(
+            keyName = "oneTick",
+            name = "oneTick",
+            description = "is combination to be 1-ticked?",
+            position = 7,
+            section = sleepSection
+    )
+    default boolean oneTick() {
+        return false;
+    }
 
 }

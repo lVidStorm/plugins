@@ -15,8 +15,10 @@ import net.runelite.client.plugins.microbot.util.widget.Rs2Widget;
 
 import javax.inject.Inject;
 import java.awt.event.KeyEvent;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-import java.util.Random;
+import java.util.stream.Collectors;
 
 import static net.runelite.client.plugins.microbot.util.Global.*;
 import static net.runelite.client.plugins.microbot.util.Global.sleep;
@@ -24,6 +26,8 @@ import static net.runelite.client.plugins.microbot.util.math.Random.random;
 
 public class zBanksBankStanderScript extends Script {
     public static long previousItemChange;
+    private static final int MAX_TRIES = 3;
+    private Set<Integer> recentItems = new HashSet<>();
     @Inject
     private zBanksBankStanderConfig config;
 
@@ -290,33 +294,39 @@ public class zBanksBankStanderScript extends Script {
         if(config.waitForAnimation()) {
             if (Rs2Player.isAnimating() /*|| Microbot.isGainingExp*/ || (System.currentTimeMillis()-previousItemChange)<2400) { return false; }
         }
-
+        Rs2Item randomItem = null;
+        if (config.oneTick()) {
+            // Use item name or ID to get random item
+            if (secondItemId != null) {
+                randomItem = getRandomItemWithLimit(secondItemId); // Use item ID
+            } else if (secondItemIdentifier != null) {
+                randomItem = getRandomItemWithLimit(secondItemIdentifier); // Use item name
+            }
+        }
         // Combine items based on the type of identifiers
         if (firstItemId != null && secondItemId != null) {
-            //TODO change how this works, maybe last item slot, or each slot?
-            // If both IDs are not null, use IDs for both items
-            System.out.println("first item click @ "+System.currentTimeMillis());
-            Rs2Inventory.use(firstItemId);
+            Rs2Inventory.use(getRandomItemWithLimit(firstItemId)); // Use first Rs2Item (random or not)
             sleep(calculateSleepDuration());
-            Rs2Inventory.use(secondItemId);
+
+            Rs2Inventory.use(randomItem != null ? randomItem : getRandomItemWithLimit(secondItemId)); // Use second Rs2Item (random or not)
+
         } else if (firstItemId != null) {
-            // If only firstItemId is not null, use it and secondItemIdentifier
-            System.out.println("first item click @ "+System.currentTimeMillis());
-            Rs2Inventory.use(firstItemId);
+            Rs2Inventory.use(getRandomItemWithLimit(firstItemId)); // Use first Rs2Item (random or not)
             sleep(calculateSleepDuration());
-            Rs2Inventory.use(secondItemIdentifier);
+
+            Rs2Inventory.use(randomItem != null ? randomItem : getRandomItemWithLimit(secondItemIdentifier)); // Use second Rs2Item (random or fallback to name)
+
         } else if (secondItemId != null) {
-            // If only secondItemId is not null, use it and firstItemIdentifier
-            System.out.println("first item click @ "+System.currentTimeMillis());
-            Rs2Inventory.use(firstItemIdentifier);
+            Rs2Inventory.use(getRandomItemWithLimit(firstItemIdentifier)); // Use first Rs2Item (random or not)
             sleep(calculateSleepDuration());
-            Rs2Inventory.use(secondItemId);
+
+            Rs2Inventory.use(randomItem != null ? randomItem : getRandomItemWithLimit(secondItemId)); // Use second Rs2Item (random or not)
+
         } else {
-            // If both IDs are null, use identifiers for both items
-            System.out.println("first item click @ "+System.currentTimeMillis());
-            Rs2Inventory.use(firstItemIdentifier);
+            Rs2Inventory.use(getRandomItemWithLimit(firstItemIdentifier)); // Use first Rs2Item (random or not)
             sleep(calculateSleepDuration());
-            Rs2Inventory.use(secondItemIdentifier);
+
+            Rs2Inventory.use(randomItem != null ? randomItem : getRandomItemWithLimit(secondItemIdentifier)); // Use second Rs2Item (random or fallback to name)
         }
 
         if (config.needMenuEntry()) {
@@ -431,6 +441,58 @@ public class zBanksBankStanderScript extends Script {
         }
         return true;
     }
+    // For item ID (int)
+    public Rs2Item getRandomItemWithLimit(int itemId) {
+        List<Rs2Item> matchingItems = Rs2Inventory.items().stream()
+                .filter(item -> item.getId() == itemId)
+                .collect(Collectors.toList());
+
+        if (matchingItems.isEmpty()) {
+            return null; // No items match the provided ID
+        }
+
+        return getRandomItemFromListWithLimit(matchingItems);
+    }
+
+    // For item name (String)
+    public Rs2Item getRandomItemWithLimit(String itemName) {
+        List<Rs2Item> matchingItems = Rs2Inventory.items().stream()
+                .filter(item -> item.getName().equalsIgnoreCase(itemName))
+                .collect(Collectors.toList());
+
+        if (matchingItems.isEmpty()) {
+            return null; // No items match the provided name
+        }
+
+        return getRandomItemFromListWithLimit(matchingItems);
+    }
+
+    // Common method for random item selection
+    private Rs2Item getRandomItemFromListWithLimit(List<Rs2Item> matchingItems) {
+        Rs2Item selectedItem = null;
+        int tries = 0;
+
+        while (tries < MAX_TRIES) {
+            int randomIndex = ThreadLocalRandom.current().nextInt(matchingItems.size());
+            selectedItem = matchingItems.get(randomIndex);
+
+            // Ensure the item hasn't been selected recently
+            if (!recentItems.contains(selectedItem.getSlot())) {
+                break;
+            }
+
+            tries++;
+        }
+
+        // Update recent item history
+        recentItems.add(selectedItem.getSlot());
+        if (recentItems.size() > MAX_TRIES) {
+            recentItems.remove(0); // Remove the oldest item
+        }
+
+        return selectedItem;
+    }
+
     // method to parse string to integer, returns null if parsing fails
     public static Integer TryParseInt(String text) {
         try {
