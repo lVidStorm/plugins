@@ -4,7 +4,6 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.plugins.microbot.Script;
 import net.runelite.client.plugins.microbot.storm.debugging.enums.Actions;
 import net.runelite.client.plugins.microbot.util.bank.Rs2Bank;
-import net.runelite.client.plugins.microbot.util.combat.Rs2Combat;
 import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
 import net.runelite.client.plugins.microbot.util.npc.Rs2Npc;
@@ -35,23 +34,42 @@ public class sdebuggerScript extends Script {
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
             if(key1isdown) {
                 while (key1isdown && this.isRunning()) {
-                    System.out.println("Should be doing thing");
-                    if (Pattern.compile("[0-9]+").matcher(config.actionMenu()).matches()) {
-                        if (Pattern.compile("[0-9]+").matcher(config.actionIDEntry()).matches()) {
-                            action(config.actionName().getAction(), Integer.parseInt(config.actionIDEntry()), Integer.parseInt(config.actionMenu()));
+                    System.out.println("Should be doing first thing");
+                    if (Pattern.compile("[0-9]+").matcher(config.firstActionMenu()).matches()) {
+                        if (Pattern.compile("[0-9]+").matcher(config.firstActionIDEntry()).matches()) {
+                            action(config.firstActionName().getAction(), Integer.parseInt(config.firstActionIDEntry()), Integer.parseInt(config.firstActionMenu()));
                         } else {
-                            action(config.actionName().getAction(), config.actionIDEntry(), Integer.parseInt(config.actionMenu()));
+                            action(config.firstActionName().getAction(), config.firstActionIDEntry(), Integer.parseInt(config.firstActionMenu()));
                         }
                     } else {
-                        if (Pattern.compile("[0-9]+").matcher(config.actionIDEntry()).matches()) {
-                            action(config.actionName().getAction(), Integer.parseInt(config.actionIDEntry()), config.actionMenu());
+                        if (Pattern.compile("[0-9]+").matcher(config.firstActionIDEntry()).matches()) {
+                            action(config.firstActionName().getAction(), Integer.parseInt(config.firstActionIDEntry()), config.firstActionMenu());
                         } else {
-                            action(config.actionName().getAction(), config.actionIDEntry(), config.actionMenu());
+                            action(config.firstActionName().getAction(), config.firstActionIDEntry(), config.firstActionMenu());
                         }
                     }
                     sleep(config.sleepMin(), config.sleepMax());
                 }
-            } else if(!config.doAction())  {
+
+            } else if (key2isdown) {
+                while (key2isdown && this.isRunning()) {
+                    System.out.println("Should be doing second thing");
+                    if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
+                        if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
+                            action(config.secondActionName().getAction(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
+                        } else {
+                            action(config.secondActionName().getAction(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        }
+                    } else {
+                        if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
+                            action(config.secondActionName().getAction(), Integer.parseInt(config.secondActionIDEntry()), config.secondActionMenu());
+                        } else {
+                            action(config.secondActionName().getAction(), config.secondActionIDEntry(), config.secondActionMenu());
+                        }
+                    }
+                    sleep(config.sleepMin(), config.sleepMax());
+                }
+            } else if(!config.doAction()) {
                 isRunningDemo();
             }
         }, 0, 30, TimeUnit.MILLISECONDS);
@@ -101,6 +119,7 @@ public class sdebuggerScript extends Script {
     public void action(String action, int ID, String menu) {
         if (minInterval == 0 || System.currentTimeMillis() > (previousAction + minInterval)) {
             if (this.isRunning()) {
+                if (Objects.equals(action, Actions.INTERACT.getAction())) { Rs2Npc.interact(ID, menu); }
                 if (Objects.equals(action, Actions.INV_INTERACT.getAction())) { Rs2Inventory.interact(ID, menu); }
                 if (Objects.equals(action, Actions.PRINTLN.getAction()) && Objects.equals(menu, Actions.GET_WIDGET.getAction())) { System.out.println(Rs2Widget.getWidget(ID)); }
             }
