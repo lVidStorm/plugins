@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.microbot.storm.debugging.enums;
+package net.runelite.client.plugins.microbot.storm.plugins.actionHotkey.enums;
 
 public enum Keys {
         VK_UNDEFINED(0),

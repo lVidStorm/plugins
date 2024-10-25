@@ -1,18 +1,49 @@
-package net.runelite.client.plugins.microbot.storm.plugins.ModifBankStander;
+package net.runelite.client.plugins.microbot.storm.plugins.BankStander;
 
 import net.runelite.client.config.*;
 
-@ConfigGroup("example")
-public interface zBanksBankStanderConfig extends Config {
-
+@ConfigGroup("BankStander")
+@ConfigInformation("• New version of Bank.js's BankStander<br />" +
+        "• Code overhauled by eXioStorm, added features : <br />" +
+        "• Withdraw more items from the bank(Super combat potions). <br />" +
+        "• Select random items(for things like 1-tick). <br />" +
+        "• Withdraw All, & first item not banked. <br />" +
+        "• Use menu. <br />" +
+        "• Wait for process")
+public interface BankStanderConfig extends Config {
+    @ConfigItem(
+            keyName = "Instructions",
+            name = "Instructions",
+            description = "Instructions",
+            position = 0
+    )
+    default String basicInstructions() {
+        return "This Script will combine items for you" +
+                "\n If using a Knife etc. make sure qty is set to 1. and use Item Slot 1." +
+                "\nChisel Item ID = 1755" +
+                "\nKnife Item ID = 946";
+    }
     @ConfigSection(
             name = "Item Settings",
             description = "Set Items to Combine",
-            position = 0,
+            position = 1,
             closedByDefault = false
     )
     String itemSection = "itemSection";
-
+    @ConfigSection(
+            name = "Toggles",
+            description = "Change plugin behaviour",
+            position = 2,
+            closedByDefault = false
+    )
+    String toggles = "toggles";
+    @ConfigSection(
+            name = "Sleep Settings",
+            description = "Set Sleep Settings",
+            position = 3,
+            closedByDefault = false
+    )
+    String sleepSection = "sleepSection";
     // Items
     @ConfigItem(
             keyName = "First Item",
@@ -125,14 +156,67 @@ public interface zBanksBankStanderConfig extends Config {
         return 1;
     }
 
-    @ConfigSection(
-            name = "Sleep Settings",
-            description = "Set Sleep Settings",
+    @ConfigItem(
+            keyName = "pause",
+            name = "Pause",
+            description = "Pause the script? will pause between states",
             position = 1,
-            closedByDefault = false
+            section = toggles
     )
-    String sleepSection = "sleepSection";
+    default boolean pause() {
+        return false;
+    }
 
+    @ConfigItem(
+            keyName = "useMenu",
+            name = "Use Menu?",
+            description = "Does this combination need menu entry?",
+            position = 2,
+            section = toggles
+    )
+    default boolean needMenuEntry() {
+        return false;
+    }
+    @ConfigItem(
+            keyName = "fourItems",
+            name = "Four Items",
+            description = "does this process need 4 items? e.g. super combat potions",
+            position = 3,
+            section = toggles
+    )
+    default boolean fourItems() {
+        return false;
+    }
+    @ConfigItem(
+            keyName = "WaitForProcess",
+            name = "Wait for process?",
+            description = "Does this combination need to wait for animation? ie. wait for inventory to process.",
+            position = 5,
+            section = toggles
+    )
+    default boolean waitForAnimation() {
+        return false;
+    }
+    @ConfigItem(
+            keyName = "withdrawAll",
+            name = "withdraw all",
+            description = "for using things like a chisel or knife where the item is not consumed in the process.",
+            position = 6,
+            section = toggles
+    )
+    default boolean withdrawAll() {
+        return false;
+    }
+    @ConfigItem(
+            keyName = "randomSelection",
+            name = "randomSelection",
+            description = "select random item in inventory?",
+            position = 7,
+            section = toggles
+    )
+    default boolean randomSelection() {
+        return false;
+    }
     @ConfigItem(
             keyName = "Sleep Min",
             name = "Sleep Min",
@@ -141,7 +225,7 @@ public interface zBanksBankStanderConfig extends Config {
             section = sleepSection
     )
     @Range(
-            min = 0,
+            min = 60,
             max = 20000
     )
 
@@ -157,7 +241,7 @@ public interface zBanksBankStanderConfig extends Config {
             section = sleepSection
     )
     @Range(
-            min = 0,
+            min = 90,
             max = 20000
     )
 
@@ -173,86 +257,11 @@ public interface zBanksBankStanderConfig extends Config {
             section = sleepSection
     )
     @Range(
-            min = 0,
+            min = 100,
             max = 20000
     )
 
     default int sleepTarget() {
         return 900;
     }
-
-    @ConfigItem(
-            keyName = "Instructions",
-            name = "Instructions",
-            description = "Instructions",
-            position = 1,
-            section = sleepSection
-    )
-    default String basicInstructions() {
-        return "This Script will combine items for you" +
-                "\n If using a Knife etc. make sure qty is set to 1. and use Item Slot 1." +
-                "\nChisel Item ID = 1755" +
-                "\nKnife Item ID = 946";
-    }
-    @ConfigItem(
-            keyName = "NeedMenuEntry",
-            name = "Need Menu Entry?",
-            description = "Does this combination need menu entry?",
-            position = 2,
-            section = sleepSection
-    )
-    default boolean needMenuEntry() {
-        return false;
-    }
-    @ConfigItem(
-            keyName = "SuperCombatPotions",
-            name = "SuperCombatPotions",
-            description = "Does this combination need menu entry?",
-            position = 3,
-            section = sleepSection
-    )
-    default boolean supercombat() {
-        return false;
-    }
-    @ConfigItem(
-            keyName = "bankall",
-            name = "bankall",
-            description = "Should we always bank all?",
-            position = 4,
-            section = sleepSection
-    )
-    default boolean bankall() {
-        return false;
-    }
-    @ConfigItem(
-            keyName = "WaitForAnimation",
-            name = "Wait for animation?",
-            description = "Does this combination need to wait for animation? ie. wait for inventory to process.",
-            position = 5,
-            section = sleepSection
-    )
-    default boolean waitForAnimation() {
-        return false;
-    }
-    @ConfigItem(
-            keyName = "withdrawAll",
-            name = "is item 1 not consumed?",
-            description = "is Item 1 not consumed such as a chisel?",
-            position = 6,
-            section = sleepSection
-    )
-    default boolean withdrawAll() {
-        return false;
-    }
-    @ConfigItem(
-            keyName = "oneTick",
-            name = "oneTick",
-            description = "is combination to be 1-ticked?",
-            position = 7,
-            section = sleepSection
-    )
-    default boolean oneTick() {
-        return false;
-    }
-
 }
