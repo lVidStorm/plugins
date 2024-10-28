@@ -2,7 +2,6 @@ package net.runelite.client.plugins.microbot.storm.plugins.actionHotkey;
 
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.microbot.Microbot;
-import net.runelite.client.plugins.microbot.storm.plugins.BankStander.BankStanderScript;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;

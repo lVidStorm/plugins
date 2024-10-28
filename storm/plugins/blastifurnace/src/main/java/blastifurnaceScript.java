@@ -56,7 +56,7 @@ public class blastifurnaceScript extends Script {
     static boolean secondaryOreEmpty;
     private boolean firstIteration;
     private long lastPaymentTime = 0;  // To track when the last payment was made
-    private static final long PAYMENT_INTERVAL = 590 * 1000; // 9 minutes 50 seconds in milliseconds
+    private static final long PAYMENT_INTERVAL = 580 * 1000; // 9 minutes 50 seconds in milliseconds
     private int getStamEffect() {return Microbot.getClientThread().runOnClientThread(() -> Microbot.getClient().getVarbitValue(Varbits.STAMINA_EFFECT));}
     private void iceGlovesEquip(){if(Rs2Equipment.hasEquipped(ItemID.ICE_GLOVES)){return;} if(this.isRunning()) { Rs2Inventory.wield(ItemID.ICE_GLOVES); } sleepUntil(() -> Rs2Equipment.hasEquipped(ItemID.ICE_GLOVES));}
     private void goldGlovesEquip(){if(Rs2Equipment.hasEquipped(ItemID.GOLDSMITH_GAUNTLETS)){return;} Rs2Inventory.wield(ItemID.GOLDSMITH_GAUNTLETS); sleepUntil(() -> Rs2Equipment.hasEquipped(ItemID.GOLDSMITH_GAUNTLETS));}
@@ -581,35 +581,35 @@ public class blastifurnaceScript extends Script {
 
         // Open the bank and deposit all items except the coal bag
         if (!Rs2Bank.isOpen()) {
-            openBank();
-            sleepUntil(Rs2Bank::isOpen, 60000);
-            sleep(100,300);
+            if(this.isRunning()) { openBank(); }
+            if(this.isRunning()) { sleepUntil(Rs2Bank::isOpen, 60000); }
+            if(this.isRunning()) { sleep(100,300); }
         }
-        Rs2Bank.depositAllExcept(ItemID.COAL_BAG_12019);
-        Rs2Inventory.waitForInventoryChanges(700);
-        sleep(100,300);
-        Rs2Bank.withdrawAll("Coins");
-        Rs2Inventory.waitForInventoryChanges(700);
-        sleep(100,300);
+        if(this.isRunning()) { Rs2Bank.depositAllExcept(ItemID.COAL_BAG_12019, ItemID.ICE_GLOVES, ItemID.GOLDSMITH_GAUNTLETS); }
+        if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(700); }
+        if(this.isRunning()) { sleep(100,300); }
+        if(this.isRunning()) { Rs2Bank.withdrawAll("Coins"); }
+        if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(700); }
+        if(this.isRunning()) { sleep(100,300); }
         Rs2Npc.interact("blast furnace foreman", "pay");
-        sleepUntil(
+        if(this.isRunning()) { sleepUntil(
                 () -> Rs2Widget.hasWidget("Pay 2,500 coins to use the Blast Furnace"),
                 () -> Rs2Player.isMoving(),
-                600
-        );
-        sleep(100,300);
-        Rs2Widget.clickWidget("Yes");
-        sleep(100,300);
+                6000
+        ); }
+        if(this.isRunning()) { sleep(100,300); }
+        if(this.isRunning()) { Rs2Widget.clickWidget("Yes"); }
+        if(this.isRunning()) { sleep(100,300); }
 
         // After payment, update the last payment time and go back to banking state
-        lastPaymentTime = System.currentTimeMillis();
+        if(this.isRunning()) { lastPaymentTime = System.currentTimeMillis(); }
         if (!Rs2Bank.isOpen()) {
-            openBank();
-            sleepUntil(Rs2Bank::isOpen, 60000);
-            sleep(100,300);
+            if(this.isRunning()) { openBank(); }
+                if(this.isRunning()) { sleepUntil(Rs2Bank::isOpen, 60000); }
+                if(this.isRunning()) { sleep(100,300); }
         }
-        Rs2Bank.depositAllExcept(ItemID.COAL_BAG_12019);
-        Rs2Inventory.waitForInventoryChanges(700);
+            if(this.isRunning()) { Rs2Bank.depositAllExcept(ItemID.COAL_BAG_12019, ItemID.ICE_GLOVES, ItemID.GOLDSMITH_GAUNTLETS); }
+            if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(700); }
     }
     @Override
     public void shutdown() {

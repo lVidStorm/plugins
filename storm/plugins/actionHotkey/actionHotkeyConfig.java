@@ -11,7 +11,10 @@ import net.runelite.client.plugins.microbot.storm.plugins.actionHotkey.enums.*;
         "like training prayer at <br />" +
         "the chaos altar, or <br />" +
         "anything else repetitive <br /> " +
-        "or hard to click.")
+        "or hard to click. must <br /> " +
+        "have significant <br /> " +
+        "differences in <br /> " +
+        "sleep values, or will autocalculate")
 public interface actionHotkeyConfig extends Config {
     @ConfigSection(
             name = "Options",
@@ -34,23 +37,30 @@ public interface actionHotkeyConfig extends Config {
     )
     String secondSection = "Second Action";
     @ConfigSection(
-            name = "First Category",
-            description = "first action",
+            name = "Conditions",
+            description = "Conditions",
             position = 7,
+            closedByDefault = true
+    )
+    String conditionsSection = "Conditions";
+    @ConfigSection(
+            name = "First Category",
+            description = "first category",
+            position = 8,
             closedByDefault = true
     )
     String firstCategories = "First Category";
     @ConfigSection(
             name = "Second Category",
             description = "second category",
-            position = 8,
+            position = 9,
             closedByDefault = true
     )
     String secondCategories = "Second Category";
     @ConfigSection(
             name = "debug",
             description = "debug",
-            position = 9
+            position = 10
     )
     String debug = "Debug";
     @ConfigItem(keyName = "toggle mode", name = "toggle mode", description = "Do you want a toggle instead of keydown?", position = 0, section = options)
@@ -62,26 +72,40 @@ public interface actionHotkeyConfig extends Config {
     @ConfigItem(keyName = "key2", name = "key2", description = "what should key 2 be?", position = 2, section = options)
     default Keys key2() { return Keys.VK_CONTROL; }
 
-    @ConfigItem(keyName = "sleepMin", name = "sleepMin", description = "Minimum sleep time", position = 3, section = options)
+    @ConfigItem(keyName = "sleepMin", name = "sleepMin", description = "Minimum sleep time", position = 5, section = options)
     @Range( min = 60, max = 30000 )
     default int sleepMin() { return 60; }
-    @ConfigItem(keyName = "sleepMax", name = "sleepMax", description = "Maximum sleep time", position = 4, section = options)
+    @ConfigItem(keyName = "sleepMax", name = "sleepMax", description = "Maximum sleep time", position = 6, section = options)
     @Range( min = 90, max = 30000 )
     default int sleepMax() { return 160; }
 
     @ConfigItem(keyName = "firstCategory", name = "Action Category", description = "pick category for first action", position = 0, section = firstSection)
     default Categories firstCategoryName() { return Categories.RS2BANK; }
-    @ConfigItem(keyName = "firstActionIDEntry", name = "ID provided to action?", description = "what ID to send to action?", position = 1, section = firstSection)
-    default String firstActionIDEntry() { return "0"; }
-    @ConfigItem(keyName = "firstActionMenu", name = "menu of action?", description = "what action menu", position = 2, section = firstSection)
+    @ConfigItem(keyName = "firstActionIDEntry", name = "first parameter for first action?", description = "what ID to send to action?", position = 1, section = firstSection)
+    default String firstActionIDEntry() { return ""; }
+    @ConfigItem(keyName = "firstActionMenu", name = "second parameter for first action?", description = "what action menu", position = 2, section = firstSection)
     default String firstActionMenu() { return ""; }
 
     @ConfigItem(keyName = "secondActionName", name = "name of action?", description = "what action to use", position = 0, section = secondSection)
     default Categories secondCategoryName() { return Categories.RS2BANK; }
-    @ConfigItem(keyName = "secondActionIDEntry", name = "ID provided to action?", description = "what ID to send to action?", position = 1, section = secondSection)
-    default String secondActionIDEntry() { return "0"; }
-    @ConfigItem(keyName = "secondActionMenu", name = "menu of action?", description = "what action menu", position = 2, section = secondSection)
+    @ConfigItem(keyName = "secondActionIDEntry", name = "first parameter for second action?", description = "what ID to send to action?", position = 1, section = secondSection)
+    default String secondActionIDEntry() { return ""; }
+    @ConfigItem(keyName = "secondActionMenu", name = "second parameter for second action?", description = "what action menu", position = 2, section = secondSection)
     default String secondActionMenu() { return ""; }
+
+    @ConfigItem(keyName = "firstCondition", name = "condition for first", description = "What should the condition be for hotkey 1?", position = 0, section = conditionsSection)
+    default Conditionals conditionsForOne() { return Conditionals.NONE; }
+    @ConfigItem(keyName = "firstConditionIDEntry", name = "first parameter for condition one?", description = "what ID to send to first condition?", position = 1, section = conditionsSection)
+    default String firstConditionIDEntry() { return ""; }
+    @ConfigItem(keyName = "firstConditionMenu", name = "second parameter for condition one?", description = "what condition one menu?", position = 2, section = conditionsSection)
+    default String firstConditionMenu() { return ""; }
+    @ConfigItem(keyName = "secondCondition", name = "condition for second", description = "What should the condition be for hotkey 2?", position = 3, section = conditionsSection)
+    default Conditionals conditionsForTwo() { return Conditionals.NONE; }
+    @ConfigItem(keyName = "secondConditionIDEntry", name = "first parameter for condition two?", description = "what ID to send to second condition?", position = 4, section = conditionsSection)
+    default String secondConditionIDEntry() { return ""; }
+    @ConfigItem(keyName = "secondConditionMenu", name = "second parameter for condition two?", description = "what condition two menu?", position = 5, section = conditionsSection)
+    default String secondConditionMenu() { return ""; }
+
 
     @ConfigItem(keyName = "firstRs2Bank", name = "Rs2Bank Action", description = "pick action for Rs2Bank", position = 0, section = firstCategories)
     default sRs2Bank firstRs2Bank() { return sRs2Bank.OPEN_BANK; }

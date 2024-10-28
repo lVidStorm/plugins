@@ -16,18 +16,20 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static net.runelite.client.plugins.microbot.storm.common.Rs2Storm.getRandomItemWithLimit;
 import static net.runelite.client.plugins.microbot.util.Global.*;
 import static net.runelite.client.plugins.microbot.util.Global.sleep;
 import static net.runelite.client.plugins.microbot.util.math.Random.random;
 
 public class BankStanderScript extends Script {
+    @Inject
+    private BankStanderConfig config;
+    public static double version = 1.2;
+
     public static long previousItemChange;
     private static final int MAX_TRIES = 3;
     private Set<Integer> recentItems = new HashSet<>();
-    @Inject
-    private BankStanderConfig config;
 
-    public static double version = 1.0;
     public static CurrentStatus currentStatus = CurrentStatus.FETCH_SUPPLIES;
 
     public static int itemsProcessed;
@@ -54,6 +56,12 @@ public class BankStanderScript extends Script {
     public static boolean isWaitingForPrompt=false;
     private static boolean sleep;
 
+    public static boolean fourItems;
+    public static String firstIdentity;
+    public static String secondIdentity;
+    public static String thirdIdentity;
+    public static String fourthIdentity;
+
     public boolean run(BankStanderConfig config) {
         this.config = config; // Initialize the config object before accessing its parameters
         itemsProcessed = 0;
@@ -62,6 +70,10 @@ public class BankStanderScript extends Script {
         secondItemId = TryParseInt(config.secondItemIdentifier());
         thirdItemId = TryParseInt(config.thirdItemIdentifier());
         fourthItemId = TryParseInt(config.fourthItemIdentifier());
+        firstIdentity = firstItemId != null ? "identified by ID" : "identified by name";
+        secondIdentity = secondItemId != null ? "identified by ID" : "identified by name";
+        thirdIdentity = thirdItemId != null ? "identified by ID" : "identified by name";
+        fourthIdentity = fourthItemId != null ? "identified by ID" : "identified by name";
 
         firstItemIdentifier = config.firstItemIdentifier();
         secondItemIdentifier = config.secondItemIdentifier();
@@ -75,22 +87,12 @@ public class BankStanderScript extends Script {
 
         sleepMin = config.sleepMin();
         sleepMax = config.sleepMax();
-        sleepTarget = config.sleepTarget();
-
-        // Print the types of firstItemIdentifier and firstItemId
-        System.out.println("Type of firstItemIdentifier: " + firstItemIdentifier.getClass().getSimpleName());
-        System.out.println("Type of firstItemId: " + (firstItemId != null ? firstItemId.getClass().getSimpleName() : "null"));
-        // Print the types of secondItemIdentifier and secondItemId
-        System.out.println("Type of secondItemIdentifier: " + secondItemIdentifier.getClass().getSimpleName());
-        System.out.println("Type of secondItemId: " + (secondItemId != null ? secondItemId.getClass().getSimpleName() : "null"));
-        if(config.fourItems()) {
-            // Print the types of thirdItemIdentifier and thirdItemId
-            System.out.println("Type of thirdItemIdentifier: " + thirdItemIdentifier.getClass().getSimpleName());
-            System.out.println("Type of thirdItemId: " + (thirdItemId != null ? thirdItemId.getClass().getSimpleName() : "null"));
-            // Print the types of fourthItemIdentifier and fourthItemId
-            System.out.println("Type of fourthItemIdentifier: " + fourthItemIdentifier.getClass().getSimpleName());
-            System.out.println("Type of fourthItemId: " + (fourthItemId != null ? fourthItemId.getClass().getSimpleName() : "null"));
-
+        if(config.sleepMax()>config.sleepMin()+120){
+            sleepMax=config.sleepMax();
+            sleepTarget = config.sleepTarget();
+        } else {
+            sleepMax=config.sleepMax()+random(120-(config.sleepMax()-config.sleepMin()),151);
+            sleepTarget = sleepMin+((sleepMax-sleepMin)/2);
         }
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
             if (!Microbot.isLoggedIn()) return;
@@ -106,24 +108,16 @@ public class BankStanderScript extends Script {
     }
 
     private boolean hasItems() {
-        // Check if the player has the required quantity of both items using the configuration
         if (firstItemId != null && secondItemId != null) {
-            // User has inputted the item id for both items.
             return Rs2Inventory.hasItem(firstItemId) &&
                     Rs2Inventory.hasItem(secondItemId);
         } else if (firstItemId != null) {
-            // User has inputted the item id for the first item and item identifier for the second item.
-            //System.out.println("Checking for first item by ID and second item by identifier...");
             return Rs2Inventory.hasItem(firstItemId) &&
                     Rs2Inventory.hasItem(secondItemIdentifier);
         } else if (secondItemId != null) {
-            // User has inputted the item id for the second item and item identifier for the first item.
-            //System.out.println("Checking for second item by ID and first item by identifier...");
             return Rs2Inventory.hasItem(firstItemIdentifier) &&
                     Rs2Inventory.hasItem(secondItemId);
         } else {
-            // User has inputted the item identifier for both items.
-            //System.out.println("Checking for items by identifier...");
             return Rs2Inventory.hasItem(firstItemIdentifier) &&
                     Rs2Inventory.hasItem(secondItemIdentifier);
         }
@@ -137,12 +131,10 @@ public class BankStanderScript extends Script {
                 sleep(100,1000);
             }
         }
-        if (currentStatus!= CurrentStatus.FETCH_SUPPLIES){ currentStatus= CurrentStatus.FETCH_SUPPLIES; }
+        if (currentStatus != CurrentStatus.FETCH_SUPPLIES){ currentStatus = CurrentStatus.FETCH_SUPPLIES; }
         sleep(calculateSleepDuration());
-        // Check if we have supplies already by calling hasItems
         if (!hasItems()) {
             if (!Rs2Bank.isOpen()) {
-                // Open Bank
                 Rs2Bank.openBank();
             }
             sleep = sleepUntilTrue(() -> Rs2Bank.isOpen(), random(67,97), 18000);
@@ -157,68 +149,49 @@ public class BankStanderScript extends Script {
             sleep = sleepUntilTrue(() -> !Rs2Inventory.isFull(), 100, 6000);
             sleep(100,300);
             if (!checkBankCount()) { return false; }
-            // Check the type of first item identifier
             if (firstItemId != null) {
-                // User has inputted the item id for the first item.
                 if (Rs2Bank.hasItem(firstItemId) && !Rs2Inventory.hasItem(firstItemId)) {
-                    // Withdraw Item 1 Qty
                     Rs2Bank.withdrawX(true, firstItemId, firstItemQuantity);
                     sleep(100,300);
                 }
             } else {
-                // User has inputted the item identifier for the first item.
                 if (Rs2Bank.hasItem(firstItemIdentifier) && !Rs2Inventory.hasItem(firstItemIdentifier)) {
-                    // Withdraw Item 1 Qty
                     Rs2Bank.withdrawX(true, firstItemIdentifier, firstItemQuantity);
                     sleep(100,300);
                 }
             }
-            // Check the type of second item identifier
             if (secondItemId != null) {
-                // User has inputted the item id for the second item.
                 if (Rs2Bank.hasItem(secondItemId)) {
                     if(!config.withdrawAll()) {
-                        // Withdraw Item 2 Qty
                         Rs2Bank.withdrawX(true, secondItemId, secondItemQuantity);
                     } else {
                         Rs2Bank.withdrawAll(secondItemId);
                     }
                 }
             } else {
-                // User has inputted the item identifier for the second item.
                 if (Rs2Bank.hasItem(secondItemIdentifier)) {
                     if(!config.withdrawAll()) {
-                        // Withdraw Item 2 Qty
                         Rs2Bank.withdrawX(true, secondItemIdentifier, secondItemQuantity);
                     } else {
                         Rs2Bank.withdrawAll(true, secondItemIdentifier);
                     }
                 }
             }
-
             if(config.fourItems()){
                 if (thirdItemId != null) {
-                    //TODO check item quantities as well~
-                    // User has inputted the item id for the first item.
                     if (Rs2Bank.hasItem(thirdItemId) && !Rs2Inventory.hasItem(thirdItemId)) {
-                        // Withdraw Item 3 Qty
                         Rs2Bank.withdrawX(true, thirdItemId, thirdItemQuantity);
                         sleep(100,300);
                     }
                 } else {
-                    // User has inputted the item identifier for the first item.
                     if (Rs2Bank.hasItem(thirdItemIdentifier)&& !Rs2Inventory.hasItem(thirdItemIdentifier)) {
-                        // Withdraw Item 3 Qty
                         Rs2Bank.withdrawX(true, thirdItemIdentifier, thirdItemQuantity);
                         sleep(100,300);
                     }
                 }
-                // Check the type of second item identifier
                 if (fourthItemId != null) {
-                    // User has inputted the item id for the fourth item.
                     if (Rs2Bank.hasItem(fourthItemId)) {
                         if(!config.withdrawAll()) {
-                            // Withdraw Item 4 Qty
                             Rs2Bank.withdrawX(true, fourthItemId, fourthItemQuantity);
                         } else {
                             Rs2Bank.withdrawAll(fourthItemId);
@@ -228,7 +201,6 @@ public class BankStanderScript extends Script {
                     // User has inputted the item identifier for the fourth item.
                     if (Rs2Bank.hasItem(fourthItemIdentifier)) {
                         if(!config.withdrawAll()) {
-                            // Withdraw Item 4 Qty
                             Rs2Bank.withdrawX(true, fourthItemIdentifier, fourthItemQuantity);
                         } else {
                             Rs2Bank.withdrawAll(true, fourthItemIdentifier);
@@ -239,7 +211,6 @@ public class BankStanderScript extends Script {
             if(!hasItems()) { Rs2Inventory.waitForInventoryChanges(700); }
             if (hasItems()) {
                 previousItemChange=(System.currentTimeMillis()-2500);
-                // Close Bank
                 long bankCloseTime = System.currentTimeMillis();
                 while(this.isRunning() && Rs2Bank.isOpen() && (System.currentTimeMillis()-bankCloseTime<32000)) {
                     closeBank();
@@ -251,7 +222,7 @@ public class BankStanderScript extends Script {
                     Rs2Player.logout();
                     sleep(calculateSleepDuration());
                 }
-                currentStatus = CurrentStatus.COMBINE_ITEMS; // Set status to COMBINE_ITEMS after fetching items
+                currentStatus = CurrentStatus.COMBINE_ITEMS;
                 return true;
             }
         }
@@ -259,7 +230,6 @@ public class BankStanderScript extends Script {
     }
 
     private boolean combineItems() {
-        // Check if we have the items, if not, fetch them
         if (!hasItems()) {
             boolean fetchedItems = fetchItems();
             if (!fetchedItems) {
@@ -271,10 +241,10 @@ public class BankStanderScript extends Script {
                     sleep(300,3000);
                 }
             }
-            return false; // Return false to indicate that items are being fetched
+            return false;
         }
         if(config.waitForAnimation()) {
-            if (Rs2Player.isAnimating() /*|| Microbot.isGainingExp*/ || (System.currentTimeMillis()-previousItemChange)<2400) { return false; }
+            if (Rs2Player.isAnimating() || (System.currentTimeMillis()-previousItemChange)<2400) { return false; }
         }
         Rs2Item randomItem = null;
         if (config.randomSelection()) {
@@ -292,7 +262,6 @@ public class BankStanderScript extends Script {
                 sleep(100,1000);
             }
         }
-        // Combine items based on the type of identifiers
         if (firstItemId != null && secondItemId != null) {
             Rs2Inventory.use(getRandomItemWithLimit(firstItemId)); // Use first Rs2Item (random or not)
             sleep(calculateSleepDuration());
@@ -321,14 +290,12 @@ public class BankStanderScript extends Script {
         if (config.needMenuEntry()) {
             sleep(calculateSleepDuration());
             isWaitingForPrompt=true;
-            // Simulate a key press (e.g., pressing SPACE)
             sleep = sleepUntilTrue(() -> !isWaitingForPrompt, random(7,31), random(800,1200));
             Rs2Keyboard.keyPress(KeyEvent.VK_SPACE);
             previousItemChange=System.currentTimeMillis();
             sleep = sleepUntilTrue(() -> !Rs2Inventory.hasItem(secondItemIdentifier != null ? String.valueOf(secondItemId) : secondItemIdentifier),10, 40000);
         }
         sleep(calculateSleepDuration());
-        // Update current status to indicate fetching supplies next
         return true;
     }
 
@@ -391,57 +358,6 @@ public class BankStanderScript extends Script {
             }
         }
         return true;
-    }
-    // For item ID (int)
-    public Rs2Item getRandomItemWithLimit(int itemId) {
-        List<Rs2Item> matchingItems = Rs2Inventory.items().stream()
-                .filter(item -> item.getId() == itemId)
-                .collect(Collectors.toList());
-
-        if (matchingItems.isEmpty()) {
-            return null; // No items match the provided ID
-        }
-
-        return getRandomItemFromListWithLimit(matchingItems);
-    }
-
-    // For item name (String)
-    public Rs2Item getRandomItemWithLimit(String itemName) {
-        List<Rs2Item> matchingItems = Rs2Inventory.items().stream()
-                .filter(item -> item.getName().equalsIgnoreCase(itemName))
-                .collect(Collectors.toList());
-
-        if (matchingItems.isEmpty()) {
-            return null; // No items match the provided name
-        }
-
-        return getRandomItemFromListWithLimit(matchingItems);
-    }
-
-    // Common method for random item selection
-    private Rs2Item getRandomItemFromListWithLimit(List<Rs2Item> matchingItems) {
-        Rs2Item selectedItem = null;
-        int tries = 0;
-
-        while (tries < MAX_TRIES) {
-            int randomIndex = ThreadLocalRandom.current().nextInt(matchingItems.size());
-            selectedItem = matchingItems.get(randomIndex);
-
-            // Ensure the item hasn't been selected recently
-            if (!recentItems.contains(selectedItem.getSlot())) {
-                break;
-            }
-
-            tries++;
-        }
-
-        // Update recent item history
-        recentItems.add(selectedItem.getSlot());
-        if (recentItems.size() > MAX_TRIES) {
-            recentItems.remove(0); // Remove the oldest item
-        }
-
-        return selectedItem;
     }
 
     // method to parse string to integer, returns null if parsing fails

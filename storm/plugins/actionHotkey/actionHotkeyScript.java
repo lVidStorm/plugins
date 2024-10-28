@@ -26,9 +26,10 @@ import static net.runelite.client.plugins.microbot.storm.plugins.actionHotkey.en
 import static net.runelite.client.plugins.microbot.storm.plugins.actionHotkey.enums.Other.*;
 import static net.runelite.client.plugins.microbot.storm.plugins.actionHotkey.enums.sRs2Npc.*;
 import static net.runelite.client.plugins.microbot.storm.plugins.actionHotkey.enums.sRs2Player.*;
+import static net.runelite.client.plugins.microbot.util.math.Random.random;
 
 public class actionHotkeyScript extends Script {
-    public static double version = 1.0;
+    public static double version = 1.1;
     public static int previousKey;
     public static boolean key1isdown;
     public static boolean key2isdown;
@@ -36,8 +37,16 @@ public class actionHotkeyScript extends Script {
     boolean toggled;
     private int minInterval;
     private int previousAction;
+    private int randomMin;
+    private int randomMax;
     private actionHotkeyConfig config;
     public boolean run(actionHotkeyConfig config){
+        randomMin = config.sleepMin();
+        if(config.sleepMax()>config.sleepMin()+60){
+            randomMax=config.sleepMax();
+        } else {
+            randomMax=config.sleepMax()+random(60-(config.sleepMax()-config.sleepMin()),91);
+        }
         alternating = false;
         toggled = false;
         previousAction = 0;
@@ -47,19 +56,27 @@ public class actionHotkeyScript extends Script {
         key2isdown = false;
         this.config = config;
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
+            if(randomMin!=config.sleepMin()){
+                randomMin = config.sleepMin();
+                if(config.sleepMax()>config.sleepMin()+60){
+                    randomMax=config.sleepMax();
+                } else {
+                    randomMax=config.sleepMax()+random(60-(config.sleepMax()-config.sleepMin()),91);
+                }
+            }
             if (key1isdown || (config.toggle() && toggled && previousKey == config.key1().getKeyCode())) {
                 while ((toggled || key1isdown) && this.isRunning()) {
                     if (!alternating) {
                         System.out.println("Should be doing first thing");
                         firstHotKey();
                         if (config.alternate()) { alternating = !alternating; }
-                        sleep(config.sleepMin(), config.sleepMax());
+                        sleep(randomMin, randomMax);
                     }
                     if (alternating && key1isdown || toggled) {
                         System.out.println("Should be doing second thing");
                         secondHotKey();
                         if (config.alternate()) { alternating = !alternating; }
-                        sleep(config.sleepMin(), config.sleepMax());
+                        sleep(randomMin, randomMax);
                     }
                 }
             } else if (key2isdown || config.toggle() && toggled && previousKey == config.key2().getKeyCode()) {
@@ -68,14 +85,14 @@ public class actionHotkeyScript extends Script {
                         System.out.println("Should be doing second thing");
                         secondHotKey();
                         if (config.alternate()) { alternating = !alternating; }
-                        sleep(config.sleepMin(), config.sleepMax());
+                        sleep(randomMin, randomMax);
                     }
 
                     if (alternating && key2isdown || toggled) {
                         System.out.println("Should be doing first thing");
                         firstHotKey();
                         if (config.alternate()) { alternating = !alternating; }
-                        sleep(config.sleepMin(), config.sleepMax());
+                        sleep(randomMin, randomMax);
                     }
                 }
             }
@@ -109,7 +126,7 @@ public class actionHotkeyScript extends Script {
         if(this.isRunning()) { System.out.println("you should see this if the script is running"); }
     }
     public void firstHotKey() {
-            // Check first action category
+        if (conditional(config.conditionsForTwo())) {
             switch (config.firstCategoryName()) {
                 case RS2NPC:
                     if (Pattern.compile("[0-9]+").matcher(config.firstActionMenu()).matches()) {
@@ -292,191 +309,248 @@ public class actionHotkeyScript extends Script {
                 default:
                     Microbot.showMessage("Unknown category: " + config.firstCategoryName().getAction());
             }
+        }
     }
     public void secondHotKey() {
-        // Check second action category
-        switch (config.secondCategoryName()) {
-            case RS2NPC:
-                if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
-                    if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
-                        action(config.secondRs2Npc(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
-                    } else if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondRs2Npc()); // Call action with only the second parameter
+        if (conditional(config.conditionsForTwo())) {
+            switch (config.secondCategoryName()) {
+                case RS2NPC:
+                    if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
+                        if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
+                            action(config.secondRs2Npc(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
+                        } else if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondRs2Npc()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondRs2Npc(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        }
+                    } else if (config.secondActionMenu().isEmpty()) {
+                        if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondRs2Npc()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondRs2Npc(), config.secondActionIDEntry());
+                        }
                     } else {
-                        action(config.secondRs2Npc(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        action(config.secondRs2Walker(), config.secondActionIDEntry(), config.secondActionMenu());
                     }
-                } else if (config.secondActionMenu().isEmpty()) {
-                    if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondRs2Npc()); // Call action with only the second parameter
-                    } else {
-                        action(config.secondRs2Npc(), config.secondActionIDEntry());
-                    }
-                } else {
-                    action(config.secondRs2Walker(), config.secondActionIDEntry(), config.secondActionMenu());
-                }
-                break;
+                    break;
 
-            case RS2PLAYER:
-                if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
-                    if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
-                        action(config.secondRs2Player(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
-                    } else if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondRs2Player()); // Call action with only the second parameter
+                case RS2PLAYER:
+                    if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
+                        if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
+                            action(config.secondRs2Player(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
+                        } else if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondRs2Player()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondRs2Player(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        }
+                    } else if (config.secondActionMenu().isEmpty()) {
+                        if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondRs2Player()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondRs2Player(), config.secondActionIDEntry());
+                        }
                     } else {
-                        action(config.secondRs2Player(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        action(config.secondRs2Player(), config.secondActionIDEntry(), config.secondActionMenu());
                     }
-                } else if (config.secondActionMenu().isEmpty()) {
-                    if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondRs2Player()); // Call action with only the second parameter
-                    } else {
-                        action(config.secondRs2Player(), config.secondActionIDEntry());
-                    }
-                } else {
-                    action(config.secondRs2Player(), config.secondActionIDEntry(), config.secondActionMenu());
-                }
-                break;
+                    break;
 
-            case RS2INVENTORY:
-                if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
-                    if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
-                        action(config.secondRs2Inventory(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
-                    } else if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondRs2Inventory()); // Call action with only the second parameter
+                case RS2INVENTORY:
+                    if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
+                        if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
+                            action(config.secondRs2Inventory(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
+                        } else if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondRs2Inventory()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondRs2Inventory(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        }
+                    } else if (config.secondActionMenu().isEmpty()) {
+                        if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondRs2Inventory()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondRs2Inventory(), config.secondActionIDEntry());
+                        }
                     } else {
-                        action(config.secondRs2Inventory(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        action(config.secondRs2Inventory(), config.secondActionIDEntry(), config.secondActionMenu());
                     }
-                } else if (config.secondActionMenu().isEmpty()) {
-                    if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondRs2Inventory()); // Call action with only the second parameter
-                    } else {
-                        action(config.secondRs2Inventory(), config.secondActionIDEntry());
-                    }
-                } else {
-                    action(config.secondRs2Inventory(), config.secondActionIDEntry(), config.secondActionMenu());
-                }
-                break;
+                    break;
 
-            case RS2WALKER:
-                if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
-                    if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
-                        action(config.secondRs2Walker(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
-                    } else if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondRs2Walker()); // Call action with only the second parameter
+                case RS2WALKER:
+                    if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
+                        if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
+                            action(config.secondRs2Walker(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
+                        } else if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondRs2Walker()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondRs2Walker(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        }
+                    } else if (config.secondActionMenu().isEmpty()) {
+                        if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondRs2Walker()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondRs2Walker(), config.secondActionIDEntry());
+                        }
                     } else {
-                        action(config.secondRs2Walker(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        action(config.secondRs2Walker(), config.secondActionIDEntry(), config.secondActionMenu());
                     }
-                } else if (config.secondActionMenu().isEmpty()) {
-                    if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondRs2Walker()); // Call action with only the second parameter
-                    } else {
-                        action(config.secondRs2Walker(), config.secondActionIDEntry());
-                    }
-                } else {
-                    action(config.secondRs2Walker(), config.secondActionIDEntry(), config.secondActionMenu());
-                }
-                break;
+                    break;
 
-            case RS2GAMEOBJECT:
-                if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
-                    if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
-                        action(config.secondRs2GameObject(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
-                    } else if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondRs2GameObject()); // Call action with only the second parameter
+                case RS2GAMEOBJECT:
+                    if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
+                        if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
+                            action(config.secondRs2GameObject(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
+                        } else if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondRs2GameObject()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondRs2GameObject(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        }
+                    } else if (config.secondActionMenu().isEmpty()) {
+                        if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondRs2GameObject()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondRs2GameObject(), config.secondActionIDEntry());
+                        }
                     } else {
-                        action(config.secondRs2GameObject(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        action(config.secondRs2GameObject(), config.secondActionIDEntry(), config.secondActionMenu());
                     }
-                } else if (config.secondActionMenu().isEmpty()) {
-                    if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondRs2GameObject()); // Call action with only the second parameter
-                    } else {
-                        action(config.secondRs2GameObject(), config.secondActionIDEntry());
-                    }
-                } else {
-                    action(config.secondRs2GameObject(), config.secondActionIDEntry(), config.secondActionMenu());
-                }
-                break;
+                    break;
 
-            case RS2WIDGET:
-                if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
-                    if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
-                        action(config.secondRs2Widget(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
-                    } else if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondRs2Widget()); // Call action with only the second parameter
+                case RS2WIDGET:
+                    if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
+                        if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
+                            action(config.secondRs2Widget(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
+                        } else if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondRs2Widget()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondRs2Widget(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        }
+                    } else if (config.secondActionMenu().isEmpty()) {
+                        if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondRs2Widget()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondRs2Widget(), config.secondActionIDEntry());
+                        }
                     } else {
-                        action(config.secondRs2Widget(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        action(config.secondRs2Widget(), config.secondActionIDEntry(), config.secondActionMenu());
                     }
-                } else if (config.secondActionMenu().isEmpty()) {
-                    if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondRs2Widget()); // Call action with only the second parameter
-                    } else {
-                        action(config.secondRs2Widget(), config.secondActionIDEntry());
-                    }
-                } else {
-                    action(config.secondRs2Widget(), config.secondActionIDEntry(), config.secondActionMenu());
-                }
-                break;
+                    break;
 
-            case RS2BANK:
-                if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
-                    if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
-                        action(config.secondRs2Bank(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
-                    } else if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondRs2Bank()); // Call action with only the second parameter
+                case RS2BANK:
+                    if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
+                        if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
+                            action(config.secondRs2Bank(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
+                        } else if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondRs2Bank()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondRs2Bank(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        }
+                    } else if (config.secondActionMenu().isEmpty()) {
+                        if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondRs2Bank()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondRs2Bank(), config.secondActionIDEntry());
+                        }
                     } else {
-                        action(config.secondRs2Bank(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        action(config.secondRs2Bank(), config.secondActionIDEntry(), config.secondActionMenu());
                     }
-                } else if (config.secondActionMenu().isEmpty()) {
-                    if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondRs2Bank()); // Call action with only the second parameter
-                    } else {
-                        action(config.secondRs2Bank(), config.secondActionIDEntry());
-                    }
-                } else {
-                    action(config.secondRs2Bank(), config.secondActionIDEntry(), config.secondActionMenu());
-                }
-                break;
+                    break;
 
-            case RS2MAGIC:
-                if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
-                    if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
-                        action(config.secondRs2Magic(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
-                    } else if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondRs2Magic()); // Call action with only the second parameter
+                case RS2MAGIC:
+                    if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
+                        if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
+                            action(config.secondRs2Magic(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
+                        } else if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondRs2Magic()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondRs2Magic(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        }
+                    } else if (config.secondActionMenu().isEmpty()) {
+                        if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondRs2Magic()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondRs2Magic(), config.secondActionIDEntry());
+                        }
                     } else {
-                        action(config.secondRs2Magic(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        action(config.secondRs2Magic(), config.secondActionIDEntry(), config.secondActionMenu());
                     }
-                } else if (config.secondActionMenu().isEmpty()) {
-                    if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondRs2Magic()); // Call action with only the second parameter
-                    } else {
-                        action(config.secondRs2Magic(), config.secondActionIDEntry());
-                    }
-                } else {
-                    action(config.secondRs2Magic(), config.secondActionIDEntry(), config.secondActionMenu());
-                }
-                break;
+                    break;
 
-            case OTHER:
-                if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
-                    if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
-                        action(config.secondOther(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
-                    } else if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondOther()); // Call action with only the second parameter
+                case OTHER:
+                    if (Pattern.compile("[0-9]+").matcher(config.secondActionMenu()).matches()) {
+                        if (Pattern.compile("[0-9]+").matcher(config.secondActionIDEntry()).matches()) {
+                            action(config.secondOther(), Integer.parseInt(config.secondActionIDEntry()), Integer.parseInt(config.secondActionMenu()));
+                        } else if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondOther()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondOther(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        }
+                    } else if (config.secondActionMenu().isEmpty()) {
+                        if (config.secondActionIDEntry().isEmpty()) {
+                            action(config.secondOther()); // Call action with only the second parameter
+                        } else {
+                            action(config.secondOther(), config.secondActionIDEntry());
+                        }
                     } else {
-                        action(config.secondOther(), config.secondActionIDEntry(), Integer.parseInt(config.secondActionMenu()));
+                        action(config.secondOther(), config.secondActionIDEntry(), config.secondActionMenu());
                     }
-                } else if (config.secondActionMenu().isEmpty()) {
-                    if (config.secondActionIDEntry().isEmpty()) {
-                        action(config.secondOther()); // Call action with only the second parameter
+                    break;
+                default:
+                    Microbot.showMessage("Unknown category: " + config.secondCategoryName().getAction());
+            }
+        }
+    }
+    public boolean conditional(Actionable actionable) {
+        if (actionable == config.conditionsForOne()) {
+            switch (config.conditionsForOne()) {
+                case NONE:
+                    return true;
+                case HAS_ITEM:
+                    if (Pattern.compile("[0-9]+").matcher(config.firstConditionMenu()).matches()) {
+                        if (Pattern.compile("[0-9]+").matcher(config.firstConditionIDEntry()).matches()) {
+                            return condition(config.conditionsForOne(), Integer.parseInt(config.firstConditionIDEntry()), Integer.parseInt(config.firstConditionMenu()));
+                        } else if (config.firstConditionIDEntry().isEmpty()) {
+                            return condition(config.conditionsForOne()); // Call condition with only the second parameter
+                        } else {
+                            return condition(config.conditionsForOne(), config.firstConditionIDEntry(), Integer.parseInt(config.firstConditionMenu()));
+                        }
+                    } else if (config.firstConditionMenu().isEmpty()) {
+                        if (config.firstConditionIDEntry().isEmpty()) {
+                            return condition(config.conditionsForOne()); // Call condition with only the second parameter
+                        } else {
+                            return condition(config.conditionsForOne(), config.firstConditionIDEntry());
+                        }
                     } else {
-                        action(config.secondOther(), config.secondActionIDEntry());
+                        return condition(config.conditionsForOne(), config.firstConditionIDEntry(), config.firstConditionMenu());
                     }
-                } else {
-                    action(config.secondOther(), config.secondActionIDEntry(), config.secondActionMenu());
-                }
-                break;
-            default:
-                Microbot.showMessage("Unknown category: " + config.secondCategoryName().getAction());
+                default:
+                    Microbot.showMessage("Unknown condition: " + config.conditionsForOne().getAction());
+                    return false;
+            }
+        } else {
+            switch (config.conditionsForTwo()) {
+                case NONE:
+                    return true;
+                case HAS_ITEM:
+                    if (Pattern.compile("[0-9]+").matcher(config.secondConditionMenu()).matches()) {
+                        if (Pattern.compile("[0-9]+").matcher(config.secondConditionIDEntry()).matches()) {
+                            return condition(config.conditionsForTwo(), Integer.parseInt(config.secondConditionIDEntry()), Integer.parseInt(config.secondConditionMenu()));
+                        } else if (config.secondConditionIDEntry().isEmpty()) {
+                            return condition(config.conditionsForTwo()); // Call condition with only the second parameter
+                        } else {
+                            return condition(config.conditionsForTwo(), config.secondConditionIDEntry(), Integer.parseInt(config.secondConditionMenu()));
+                        }
+                    } else if (config.secondConditionMenu().isEmpty()) {
+                        if (config.secondConditionIDEntry().isEmpty()) {
+                            return condition(config.conditionsForTwo()); // Call condition with only the second parameter
+                        } else {
+                            return condition(config.conditionsForTwo(), config.secondConditionIDEntry());
+                        }
+                    } else {
+                        return condition(config.conditionsForTwo(), config.secondConditionIDEntry(), config.secondConditionMenu());
+                    }
+                default:
+                    Microbot.showMessage("Unknown condition: " + config.conditionsForTwo().getAction());
+                    return false;
+            }
         }
     }
     public void action(Actionable action, int ID) {
@@ -484,7 +558,6 @@ public class actionHotkeyScript extends Script {
             if (this.isRunning()) {
 
                 if (action instanceof sRs2Bank) {
-                    // Handle Rs2Bank actions
                     switch ((sRs2Bank) action) {
                         case WITHDRAW_ALL:
                             Rs2Bank.withdrawAll(ID);
@@ -497,14 +570,12 @@ public class actionHotkeyScript extends Script {
                             break;
                     }
                 } else if (action instanceof sRs2Walker) {
-                    // Handle Rs2Walker actions
                     switch ((sRs2Walker) action) {
                         case WALK_FAST_CANVAS:
                             Rs2Walker.walkFastCanvas(new WorldPoint(ID, 0, Rs2Player.getWorldLocation().getPlane()));
                             break;
                     }
                 } else if (action instanceof sRs2Inventory) {
-                    // Handle Rs2Inventory actions
                     switch ((sRs2Inventory) action) {
                         case DROP_ITEM:
                             Rs2Inventory.drop(ID);
@@ -532,14 +603,12 @@ public class actionHotkeyScript extends Script {
                             break;
                     }
                 } else if (action instanceof sRs2GameObject) {
-                    // Handle Rs2Inventory actions
                     switch ((sRs2GameObject) action) {
                         case OBJ_INTERACT:
                             Rs2GameObject.interact(ID);
                             break;
                     }
                 } else if (action instanceof sRs2Npc) {
-                    // Handle Rs2Inventory actions
                     switch ((sRs2Npc) action) {
                         case ATTACK:
                             Rs2Npc.attack(ID);
@@ -556,7 +625,6 @@ public class actionHotkeyScript extends Script {
         if (minInterval == 0 || System.currentTimeMillis() > (previousAction + minInterval)) {
             if (this.isRunning()) {
                 if (action instanceof sRs2Bank) {
-                    // Handle Rs2Bank actions with string
                     switch ((sRs2Bank) action) {
                         case WITHDRAW_ALL:
                             Rs2Bank.withdrawAll(name);
@@ -566,7 +634,6 @@ public class actionHotkeyScript extends Script {
                             break;
                     }
                 } else if (action instanceof sRs2Npc) {
-                // Handle Rs2Walker actions
                 switch ((sRs2Npc) action) {
                     case ATTACK:
                         Rs2Npc.attack(name);
@@ -575,7 +642,6 @@ public class actionHotkeyScript extends Script {
             } else {
                     Microbot.showMessage("Unknown action : " + action.getAction() + "(String "+name+");");
                 }
-                // Implement for other enums (e.g., Rs2Walker, Rs2Inventory) as needed
             }
         }
     }
@@ -611,7 +677,6 @@ public class actionHotkeyScript extends Script {
                 } else {
                     Microbot.showMessage("Unknown action : " + action.getAction() + "(int "+ID+", String "+menu+");");
                 }
-                // Implement for other enums (e.g., Rs2Bank, Rs2Walker) as needed
             }
         }
     }
@@ -649,11 +714,90 @@ public class actionHotkeyScript extends Script {
                 } else {
                     Microbot.showMessage("Unknown action : " + action.getAction() + "();");
                 }
-                // Implement for other enums (e.g., Rs2Bank, Rs2Walker) as needed
             }
         }
     }
-
+    public boolean condition(Actionable action){
+        if (this.isRunning()) {
+            if(action instanceof Conditionals) {
+                switch ((Conditionals) action) {
+                    case NONE:
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+    public boolean condition(Actionable action, int ID){
+        if (this.isRunning()) {
+            if(action instanceof Conditionals) {
+                switch ((Conditionals) action) {
+                    case NONE:
+                        return true;
+                    case HAS_ITEM:
+                        return Rs2Inventory.hasItem(ID);
+                }
+            }
+        }
+        return false;
+    }
+    public boolean condition(Actionable action, String name){
+        if (this.isRunning()) {
+            if(action instanceof Conditionals) {
+                switch ((Conditionals) action) {
+                    case NONE:
+                        return true;
+                    case HAS_ITEM:
+                        return Rs2Inventory.hasItem(name);
+                }
+            }
+        }
+        return false;
+    }
+    public boolean condition(Actionable action, int ID, String name){
+        if (this.isRunning()) {
+            if(action instanceof Conditionals) {
+                switch ((Conditionals) action) {
+                    case NONE:
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+    public boolean condition(Actionable action, String name, int value){
+        if (this.isRunning()) {
+            if(action instanceof Conditionals) {
+                switch ((Conditionals) action) {
+                    case NONE:
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+    public boolean condition(Actionable action, int ID, int value){
+        if (this.isRunning()) {
+            if(action instanceof Conditionals) {
+                switch ((Conditionals) action) {
+                    case NONE:
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+    public boolean condition(Actionable action, String name, String ID){
+        if (this.isRunning()) {
+            if(action instanceof Conditionals) {
+                switch ((Conditionals) action) {
+                    case NONE:
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
     @Override
     public void shutdown() {
         super.shutdown();
