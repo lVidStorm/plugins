@@ -114,27 +114,28 @@ public class RunecraftingScript extends Script {
                                 repairPouches();
                                 return;
                             }
+                            if(config.useColossalPouch()) {
+                                System.out.println("Varbit value is : "+Microbot.getVarbitPlayerValue(487));
+                                if (Microbot.getVarbitPlayerValue(487) < 3) {
+                                    if(this.isRunning() && !Rs2Inventory.hasItem(5521)){ Rs2Equipment.unEquip(5521); }
+                                    if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(200); }
+                                    if(this.isRunning()){ sleep(61, 97); }
+                                    while(this.isRunning() && Rs2Inventory.hasItem(5521)) {
+                                        if (!this.isRunning()){ return; }
+                                        if (this.isRunning()) { Rs2Inventory.interact(5521, "destroy"); }
+                                        if (this.isRunning()) { sleepUntil(() -> Rs2Widget.hasWidget("Yes")); }
+                                        if (this.isRunning()) { sleep(61, 97); }
+                                        if (this.isRunning()) { Rs2Keyboard.keyPress(KeyEvent.VK_1); }
+                                        if (this.isRunning()) { Rs2Inventory.waitForInventoryChanges(200); }
+                                        if (this.isRunning()) { sleep(61, 97); }
+                                    }
+                                }
+                            }
                             if (!hasItems()) {
                                 while (!bankIsOpen && this.isRunning()) {
                                     openChest();
                                     if(this.isRunning()){ sleepUntil(() -> bankIsOpen, 4000); }
                                     if(this.isRunning()){ sleep(61, 97); }
-                                }
-                                if(config.useColossalPouch()) {
-                                    System.out.println("Varbit value is : "+Microbot.getVarbitPlayerValue(487));
-                                    if (Microbot.getVarbitPlayerValue(487) < 3) {
-                                        if(this.isRunning()){ Rs2Bank.withdrawOne(5521); }
-                                        if(this.isRunning()){ sleep(61, 97); }
-                                        closeBank();
-                                        if(this.isRunning()){ sleepUntil(() -> !bankIsOpen); }
-                                        if(this.isRunning()){ sleep(61, 97); }
-                                        if(this.isRunning()){ Rs2Inventory.interact(5521, "destroy"); }
-                                        if(this.isRunning()){ Rs2Widget. }
-                                        if(this.isRunning()){ sleep(61, 97); }
-                                        if(this.isRunning()){ Rs2Keyboard.keyPress(KeyEvent.VK_1); }
-                                        if(this.isRunning()){ sleep(61, 97); }
-                                        return;
-                                    }
                                 }
                                 createItemList();
                                 if(this.isRunning()){ Rs2Bank.depositAll(x -> inventoryItems.stream().noneMatch(id -> id == x.id)); }
