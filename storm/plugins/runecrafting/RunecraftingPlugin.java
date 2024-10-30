@@ -2,7 +2,9 @@ package net.runelite.client.plugins.microbot.storm.plugins.runecrafting;
 
 import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.Varbits;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WidgetClosed;
 import net.runelite.api.events.WidgetLoaded;
@@ -67,6 +69,12 @@ public class RunecraftingPlugin extends Plugin {
         }
         if (event.getVarbitId() == Varbits.MAGIC_IMBUE) {
             RunecraftingScript.imbueTimer = event.getValue();
+        }
+    }
+    @Subscribe
+    public void onChatMessage(ChatMessage event) {
+        if (event.getType() == ChatMessageType.PUBLICCHAT) {
+            RunecraftingScript.hopscheduled = true;
         }
     }
     protected void shutDown() {

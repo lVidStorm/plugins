@@ -582,7 +582,7 @@ public class actionHotkeyScript extends Script {
                             Rs2Inventory.equip(ID);
                             break;
                         case USE_RANDOM:
-                            Rs2Inventory.use(Rs2Storm.getRandomItemWithLimit(ID));
+                            Rs2Inventory.use(Rs2Storm.getRandomItemWithLimit(ID, 4));
                             break;
                         case USE_LAST:
                             Rs2Inventory.useLast(ID);

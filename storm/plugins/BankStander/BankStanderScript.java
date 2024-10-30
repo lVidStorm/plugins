@@ -250,9 +250,9 @@ public class BankStanderScript extends Script {
         if (config.randomSelection()) {
             // Use item name or ID to get random item
             if (secondItemId != null) {
-                randomItem = getRandomItemWithLimit(secondItemId); // Use item ID
+                randomItem = getRandomItemWithLimit(secondItemId, MAX_TRIES); // Use item ID
             } else if (secondItemIdentifier != null) {
-                randomItem = getRandomItemWithLimit(secondItemIdentifier); // Use item name
+                randomItem = getRandomItemWithLimit(secondItemIdentifier, MAX_TRIES); // Use item name
             }
         }
         if(currentStatus != CurrentStatus.COMBINE_ITEMS) { currentStatus = CurrentStatus.COMBINE_ITEMS; }
@@ -263,28 +263,28 @@ public class BankStanderScript extends Script {
             }
         }
         if (firstItemId != null && secondItemId != null) {
-            Rs2Inventory.use(getRandomItemWithLimit(firstItemId)); // Use first Rs2Item (random or not)
+            Rs2Inventory.use(getRandomItemWithLimit(firstItemId, MAX_TRIES)); // Use first Rs2Item (random or not)
             sleep(calculateSleepDuration());
 
-            Rs2Inventory.use(randomItem != null ? randomItem : getRandomItemWithLimit(secondItemId)); // Use second Rs2Item (random or not)
+            Rs2Inventory.use(randomItem != null ? randomItem : getRandomItemWithLimit(secondItemId, MAX_TRIES)); // Use second Rs2Item (random or not)
 
         } else if (firstItemId != null) {
-            Rs2Inventory.use(getRandomItemWithLimit(firstItemId)); // Use first Rs2Item (random or not)
+            Rs2Inventory.use(getRandomItemWithLimit(firstItemId, MAX_TRIES)); // Use first Rs2Item (random or not)
             sleep(calculateSleepDuration());
 
-            Rs2Inventory.use(randomItem != null ? randomItem : getRandomItemWithLimit(secondItemIdentifier)); // Use second Rs2Item (random or fallback to name)
+            Rs2Inventory.use(randomItem != null ? randomItem : getRandomItemWithLimit(secondItemIdentifier, MAX_TRIES)); // Use second Rs2Item (random or fallback to name)
 
         } else if (secondItemId != null) {
-            Rs2Inventory.use(getRandomItemWithLimit(firstItemIdentifier)); // Use first Rs2Item (random or not)
+            Rs2Inventory.use(getRandomItemWithLimit(firstItemIdentifier, MAX_TRIES)); // Use first Rs2Item (random or not)
             sleep(calculateSleepDuration());
 
-            Rs2Inventory.use(randomItem != null ? randomItem : getRandomItemWithLimit(secondItemId)); // Use second Rs2Item (random or not)
+            Rs2Inventory.use(randomItem != null ? randomItem : getRandomItemWithLimit(secondItemId, MAX_TRIES)); // Use second Rs2Item (random or not)
 
         } else {
-            Rs2Inventory.use(getRandomItemWithLimit(firstItemIdentifier)); // Use first Rs2Item (random or not)
+            Rs2Inventory.use(getRandomItemWithLimit(firstItemIdentifier, MAX_TRIES)); // Use first Rs2Item (random or not)
             sleep(calculateSleepDuration());
 
-            Rs2Inventory.use(randomItem != null ? randomItem : getRandomItemWithLimit(secondItemIdentifier)); // Use second Rs2Item (random or fallback to name)
+            Rs2Inventory.use(randomItem != null ? randomItem : getRandomItemWithLimit(secondItemIdentifier, MAX_TRIES)); // Use second Rs2Item (random or fallback to name)
         }
 
         if (config.needMenuEntry()) {

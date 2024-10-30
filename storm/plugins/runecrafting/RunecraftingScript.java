@@ -11,6 +11,7 @@ import net.runelite.client.plugins.microbot.util.equipment.Rs2Equipment;
 import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Item;
+import net.runelite.client.plugins.microbot.util.keyboard.Rs2Keyboard;
 import net.runelite.client.plugins.microbot.util.magic.Rs2Magic;
 import net.runelite.client.plugins.microbot.util.npc.Rs2Npc;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
@@ -20,10 +21,13 @@ import net.runelite.client.plugins.microbot.util.widget.Rs2Widget;
 import net.runelite.client.plugins.skillcalculator.skills.MagicAction;
 
 import javax.inject.Inject;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static net.runelite.client.plugins.microbot.storm.plugins.runecrafting.enums.State.*;
 import static net.runelite.client.plugins.microbot.util.Global.sleepUntilTrue;
@@ -47,6 +51,7 @@ public class RunecraftingScript extends Script {
     public static boolean bankIsOpen = false;
     static int staminaTimer = 0;
     static int imbueTimer = 0;
+    static boolean hopscheduled;
     static boolean shouldstopscript;
     int inventoryEmptySpace;
     boolean firstpouchemptied=false;
@@ -56,12 +61,17 @@ public class RunecraftingScript extends Script {
 
     public boolean run(RunecraftingConfig config) {
         Microbot.enableAutoRunOn = false;
+        hopscheduled = false;
+        List<Integer> Worlds = Arrays.stream(config.suitableWorlds().split(","))
+                .map(String::trim)        // Trim each string
+                .map(Integer::parseInt)   // Parse each string to an integer
+                .collect(Collectors.toList());
         shouldstopscript = false;
         this.config = config; // Initialize the config object before accessing its parameters
         inventory = Microbot.getClientThread().runOnClientThread(() ->Microbot.getClient().getItemContainer(InventoryID.INVENTORY));
         bankIsOpen = Rs2Bank.isOpen();
         sleepMin = config.sleepMin();
-        sleepMax = config.sleepMax();//TODO yes
+        sleepMax = config.sleepMax();
         sleepTarget = config.sleepTarget();
         inventoryEmptySpace=0;
         staminaTimer=0;
@@ -86,6 +96,13 @@ public class RunecraftingScript extends Script {
                                     System.out.println("Item: " + item.getName() + " | ID: " + item.getId());
                                 }*/
                               //fetchAndMemorizeInventory();
+                            if(config.hopWhenChatMessage() && hopscheduled) {
+                                hopscheduled = false;
+                                int nextWorld = Worlds.get((Worlds.indexOf(Microbot.getClient().getWorld())+1) % Worlds.size());
+                                sleep(1000, 3200);
+                                Microbot.hopToWorld(nextWorld);
+                                sleep(10000, 11200);
+                            }
                             if((Rs2Inventory.hasItem(5515) && config.useGiantPouch()) ||
                                     (Rs2Inventory.hasItem(5513) && config.useLargePouch()) ||
                                     (Rs2Inventory.hasItem(6819) && config.useLargePouch()) ||
@@ -99,10 +116,25 @@ public class RunecraftingScript extends Script {
                             }
                             if (!hasItems()) {
                                 while (!bankIsOpen && this.isRunning()) {
-                                    //openBank();
                                     openChest();
                                     if(this.isRunning()){ sleepUntil(() -> bankIsOpen, 4000); }
                                     if(this.isRunning()){ sleep(61, 97); }
+                                }
+                                if(config.useColossalPouch()) {
+                                    System.out.println("Varbit value is : "+Microbot.getVarbitPlayerValue(487));
+                                    if (Microbot.getVarbitPlayerValue(487) < 3) {
+                                        if(this.isRunning()){ Rs2Bank.withdrawOne(5521); }
+                                        if(this.isRunning()){ sleep(61, 97); }
+                                        closeBank();
+                                        if(this.isRunning()){ sleepUntil(() -> !bankIsOpen); }
+                                        if(this.isRunning()){ sleep(61, 97); }
+                                        if(this.isRunning()){ Rs2Inventory.interact(5521, "destroy"); }
+                                        if(this.isRunning()){ Rs2Widget. }
+                                        if(this.isRunning()){ sleep(61, 97); }
+                                        if(this.isRunning()){ Rs2Keyboard.keyPress(KeyEvent.VK_1); }
+                                        if(this.isRunning()){ sleep(61, 97); }
+                                        return;
+                                    }
                                 }
                                 createItemList();
                                 if(this.isRunning()){ Rs2Bank.depositAll(x -> inventoryItems.stream().noneMatch(id -> id == x.id)); }
@@ -365,7 +397,7 @@ public class RunecraftingScript extends Script {
                     } else { Rs2Bank.depositOne(229); sleepUntil(() -> !Rs2Inventory.hasItem(229)); }
                     if (this.isRunning()) { sleep(calculateSleepDuration()); }
                 }
-            }//TODO alright
+            }
         } else { shouldstopscript=true; }
         if(this.isRunning() && shouldstopscript){ do{ Microbot.showMessage("You are missing items"); sleepUntil(() -> Rs2Inventory.isFull(), 99999); if (Rs2Inventory.isFull()) { shouldstopscript=false; } } while(this.isRunning() && shouldstopscript); }
         if (config.useSmallPouch() && !Rs2Inventory.isFull()) {
@@ -534,21 +566,21 @@ public class RunecraftingScript extends Script {
             if(this.isRunning() && Rs2Inventory.hasItem(26784) && !colossalpouchfilled && (firstpouchfilled || Rs2Inventory.isFull()) && (Rs2Inventory.hasItem(7936) || Rs2Inventory.hasItem(24704))){
                 if (this.isRunning()) { Rs2Inventory.interact(26784, "fill"); }
                 if (this.isRunning() && !firstpouchfilled) { firstpouchfilled=true; }
-                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(600); }
+                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(200); }
                 if (this.isRunning()) { sleep(calculateSleepDuration()); }
                 if (this.isRunning() && (Rs2Inventory.hasItem(7936)||Rs2Inventory.hasItem(24704))) { colossalpouchfilled=true; }
             }
             if(this.isRunning() && Rs2Inventory.hasItem(26786) && !colossalpouchfilled && (firstpouchfilled || Rs2Inventory.isFull()) && (Rs2Inventory.hasItem(7936) || Rs2Inventory.hasItem(24704))){
                 if (this.isRunning()) { Rs2Inventory.interact(26786, "fill"); }
                 if (this.isRunning() && !firstpouchfilled) { firstpouchfilled=true; }
-                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(600); }
+                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(200); }
                 if (this.isRunning()) { sleep(calculateSleepDuration()); }
                 if (this.isRunning() && (Rs2Inventory.hasItem(7936)||Rs2Inventory.hasItem(24704))) { colossalpouchfilled=true; }
             }
             if(this.isRunning() && Rs2Inventory.hasItem(26906) && !colossalpouchfilled && (firstpouchfilled || Rs2Inventory.isFull()) && (Rs2Inventory.hasItem(7936) || Rs2Inventory.hasItem(24704))){
                 if (this.isRunning()) { Rs2Inventory.interact(26906, "fill"); }
                 if (this.isRunning() && !firstpouchfilled) { firstpouchfilled=true; }
-                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(600); }
+                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(200); }
                 if (this.isRunning()) { sleep(calculateSleepDuration()); }
                 if (this.isRunning() && (Rs2Inventory.hasItem(7936)||Rs2Inventory.hasItem(24704))) { colossalpouchfilled=true; }
             }
@@ -556,7 +588,7 @@ public class RunecraftingScript extends Script {
                 checkRequiredEssence(12);
                 if (this.isRunning()) { Rs2Inventory.interact(5514, "fill"); }
                 if (this.isRunning() && !firstpouchfilled) { firstpouchfilled=true; }
-                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(600); }
+                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(200); }
                 if (this.isRunning()) { sleep(calculateSleepDuration()); }
                 if (this.isRunning() && (Rs2Inventory.hasItem(7936)||Rs2Inventory.hasItem(24704))) { giantpouchfilled=true; }
             }
@@ -564,7 +596,7 @@ public class RunecraftingScript extends Script {
                 checkRequiredEssence(12);
                 if (this.isRunning()) { Rs2Inventory.interact(5515, "fill"); }
                 if (this.isRunning() && !firstpouchfilled) { firstpouchfilled=true; }
-                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(600); }
+                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(200); }
                 if (this.isRunning()) { sleep(calculateSleepDuration()); }
                 if (this.isRunning() && (Rs2Inventory.hasItem(7936)||Rs2Inventory.hasItem(24704))) { giantpouchfilled=true; }
             }
@@ -572,7 +604,7 @@ public class RunecraftingScript extends Script {
                 checkRequiredEssence(9);
                 if (this.isRunning()) { Rs2Inventory.interact(5512, "fill"); }
                 if (this.isRunning() && !firstpouchfilled) { firstpouchfilled=true; }
-                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(600); }
+                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(200); }
                 if (this.isRunning()) { sleep(calculateSleepDuration()); }
                 if (this.isRunning() && (Rs2Inventory.hasItem(7936)||Rs2Inventory.hasItem(24704))) { largepouchfilled=true; }
             }
@@ -580,7 +612,7 @@ public class RunecraftingScript extends Script {
                 checkRequiredEssence(9);
                 if (this.isRunning()) { Rs2Inventory.interact(5513, "fill"); }
                 if (this.isRunning() && !firstpouchfilled) { firstpouchfilled=true; }
-                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(600); }
+                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(200); }
                 if (this.isRunning()) { sleep(calculateSleepDuration()); }
                 if (this.isRunning() && (Rs2Inventory.hasItem(7936)||Rs2Inventory.hasItem(24704))) { largepouchfilled=true; }
             }
@@ -588,7 +620,7 @@ public class RunecraftingScript extends Script {
                 checkRequiredEssence(9);
                 if (this.isRunning()) { Rs2Inventory.interact(6819, "fill"); }
                 if (this.isRunning() && !firstpouchfilled) { firstpouchfilled=true; }
-                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(600); }
+                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(200); }
                 if (this.isRunning()) { sleep(calculateSleepDuration()); }
                 if (this.isRunning() && (Rs2Inventory.hasItem(7936)||Rs2Inventory.hasItem(24704))) { largepouchfilled=true; }
             }
@@ -596,7 +628,7 @@ public class RunecraftingScript extends Script {
                 checkRequiredEssence(6);
                 if (this.isRunning()) { Rs2Inventory.interact(5510, "fill"); }
                 if (this.isRunning() && !firstpouchfilled) { firstpouchfilled=true; }
-                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(600); }
+                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(200); }
                 if (this.isRunning()) { sleep(calculateSleepDuration()); }
                 if (this.isRunning() && (Rs2Inventory.hasItem(7936)||Rs2Inventory.hasItem(24704))) { mediumpouchfilled=true; }
             }
@@ -604,7 +636,7 @@ public class RunecraftingScript extends Script {
                 checkRequiredEssence(6);
                 if (this.isRunning()) { Rs2Inventory.interact(5511, "fill"); }
                 if (this.isRunning() && !firstpouchfilled) { firstpouchfilled=true; }
-                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(600); }
+                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(200); }
                 if (this.isRunning()) { sleep(calculateSleepDuration()); }
                 if (this.isRunning() && (Rs2Inventory.hasItem(7936)||Rs2Inventory.hasItem(24704))) { mediumpouchfilled=true; }
             }
@@ -612,7 +644,7 @@ public class RunecraftingScript extends Script {
                 checkRequiredEssence(3);
                 if (this.isRunning()) { Rs2Inventory.interact(5509, "fill"); }
                 if (this.isRunning() && !firstpouchfilled) { firstpouchfilled=true; }
-                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(600); }
+                if(this.isRunning()) { Rs2Inventory.waitForInventoryChanges(200); }
                 if (this.isRunning()) { sleep(calculateSleepDuration()); }
                 if (this.isRunning() && (Rs2Inventory.hasItem(7936)||Rs2Inventory.hasItem(24704))) { smallpouchfilled=true; }
             }
@@ -757,7 +789,7 @@ public class RunecraftingScript extends Script {
         if(config.useColossalPouch() && !colossalpouchemptied && !Rs2Inventory.isFull() && this.isRunning()){
             Rs2Inventory.interact("Colossal pouch","Empty");
             //sleepUntil(() -> Rs2Inventory.getEmptySlots()<inventoryEmptySpace, 400);
-            Rs2Inventory.waitForInventoryChanges(600);
+            Rs2Inventory.waitForInventoryChanges(200);
             sleep(calculateSleepDuration());
             if(!Rs2Inventory.isFull()){ inventoryEmptySpace = Rs2Inventory.getEmptySlots(); colossalpouchemptied=true; }
         }
@@ -767,7 +799,7 @@ public class RunecraftingScript extends Script {
             if(Rs2Inventory.getEmptySlots()<12) { return true; }
             Rs2Inventory.interact("Giant pouch","Empty");
             //sleepUntil(() -> Rs2Inventory.getEmptySlots()<inventoryEmptySpace, 400);
-            Rs2Inventory.waitForInventoryChanges(600);
+            Rs2Inventory.waitForInventoryChanges(200);
             sleep(calculateSleepDuration());
             if(!Rs2Inventory.isFull()){ inventoryEmptySpace = Rs2Inventory.getEmptySlots(); giantpouchemptied=true; }
         }
@@ -776,7 +808,7 @@ public class RunecraftingScript extends Script {
             if(Rs2Inventory.getEmptySlots()<9) { return true; }
             Rs2Inventory.interact("Large pouch","Empty");
             //sleepUntil(() -> Rs2Inventory.getEmptySlots()<inventoryEmptySpace, 400);
-            Rs2Inventory.waitForInventoryChanges(600);
+            Rs2Inventory.waitForInventoryChanges(200);
             sleep(calculateSleepDuration());
             if(!Rs2Inventory.isFull()){ inventoryEmptySpace = Rs2Inventory.getEmptySlots(); largepouchemptied=true; }
         }
@@ -785,7 +817,7 @@ public class RunecraftingScript extends Script {
             if(Rs2Inventory.getEmptySlots()<6) { return true; }
             Rs2Inventory.interact("Medium pouch","Empty");
             //sleepUntil(() -> Rs2Inventory.getEmptySlots()<inventoryEmptySpace, 400);
-            Rs2Inventory.waitForInventoryChanges(600);
+            Rs2Inventory.waitForInventoryChanges(200);
             sleep(calculateSleepDuration());
             if(!Rs2Inventory.isFull()){ inventoryEmptySpace = Rs2Inventory.getEmptySlots(); mediumpouchemptied=true; }
         }
@@ -794,7 +826,7 @@ public class RunecraftingScript extends Script {
             if(Rs2Inventory.getEmptySlots()<3) { return true; }
             Rs2Inventory.interact("Small pouch","Empty");
             //sleepUntil(() -> Rs2Inventory.getEmptySlots()<inventoryEmptySpace, 400);
-            Rs2Inventory.waitForInventoryChanges(600);
+            Rs2Inventory.waitForInventoryChanges(200);
             sleep(calculateSleepDuration());
             if(!Rs2Inventory.isFull()){ inventoryEmptySpace = Rs2Inventory.getEmptySlots(); smallpouchemptied=true; }
         }

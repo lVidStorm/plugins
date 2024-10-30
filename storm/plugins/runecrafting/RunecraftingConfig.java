@@ -122,7 +122,16 @@ public interface RunecraftingConfig extends Config {
             description = "Hop to a different world when chat messages are detected?",
             section = otherSettings
     ) default boolean hopWhenChatMessage() {return false;}
-
+    @ConfigItem(
+            keyName = "Worlds",
+            name = "Worlds to hop",
+            description = "Suitable worlds to hop to. MAKE SURE YOUR CURRENT WORLD IS INCLUDED IN THE LIST!",
+            position = 1,
+            section = otherSettings
+    )
+    default String suitableWorlds() {
+        return "361";
+    }
     @ConfigItem(
             keyName = "Sleep Min",
             name = "Sleep Min",
