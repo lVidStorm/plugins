@@ -29,14 +29,19 @@ public interface RunecraftingConfig extends Config {
     )
     String itemSettings = "itemSettings";
     @ConfigSection(
-            name = "Debug Settings",
-            description = "Debug Settings",
+            name = "Other",
+            description = "Other",
             position = 3,
             closedByDefault = false
     )
-    String debugSettings = "debugSettings";
-
-
+    String otherSettings = "Other";
+    @ConfigSection(
+            name = "Sleep Settings",
+            description = "Set Sleep Settings",
+            position = 4,
+            closedByDefault = false
+    )
+    String sleepSection = "sleepSection";
 
     //Methods
     @ConfigItem(
@@ -70,35 +75,6 @@ public interface RunecraftingConfig extends Config {
 
 
     //Item Settings
-    @ConfigItem(
-            position = 0,
-            keyName = "Use Stamina Potions?",
-            name = "Use Stamina Potions?",
-            description = "Use Stamina Potions?",
-            section = itemSettings
-    ) default boolean useStaminas() {return true;}
-
-    @Range(
-            min = 0,
-            max = 99
-    )
-    @Units(Units.PERCENT)
-    @ConfigItem(
-            position = 1,
-            keyName = "Min Stamina Energy?",
-            name = "Min Stamina Energy?",
-            description = "Min Stamina Energy?",
-            section = itemSettings
-    ) default int getMinStaminaEnergy() {return 60;}
-
-    @ConfigItem(
-            position = 2,
-            keyName = "Keep Stamina Active?",
-            name = "Keep Stamina Active?",
-            description = "Keep Stamina Active?",
-            section = itemSettings
-    ) default boolean keepStaminaActive() {return true;}
-
     @ConfigItem(
             position = 3,
             keyName = "Small pouch",
@@ -141,18 +117,11 @@ public interface RunecraftingConfig extends Config {
 
     @ConfigItem(
             position = 0,
-            keyName = "Verbose Logging",
-            name = "Verbose Logging",
-            description = "Verbose Logging",
-            section = debugSettings
-    ) default boolean getVerboseLogging() {return true;}
-    @ConfigSection(
-            name = "Sleep Settings",
-            description = "Set Sleep Settings",
-            position = 4,
-            closedByDefault = false
-    )
-    String sleepSection = "sleepSection";
+            keyName = "HopWhenChat",
+            name = "Hop when chat",
+            description = "Hop to a different world when chat messages are detected?",
+            section = otherSettings
+    ) default boolean hopWhenChatMessage() {return false;}
 
     @ConfigItem(
             keyName = "Sleep Min",
@@ -201,8 +170,5 @@ public interface RunecraftingConfig extends Config {
     default int sleepTarget() {
         return 115;
     }
-
-
-
 
 }

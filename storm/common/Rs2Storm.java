@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 public class Rs2Storm {
-    private static final int MAX_TRIES = 3;
+    private static final int MAX_TRIES = 4;
     private static Set<Integer> recentItems = new HashSet<>();
 
 
