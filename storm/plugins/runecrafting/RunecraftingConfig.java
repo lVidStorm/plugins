@@ -29,12 +29,12 @@ public interface RunecraftingConfig extends Config {
     )
     String itemSettings = "itemSettings";
     @ConfigSection(
-            name = "Other",
-            description = "Other",
+            name = "aOther",
+            description = "aOther",
             position = 3,
             closedByDefault = false
     )
-    String otherSettings = "Other";
+    String otherSettings = "aOther";
     @ConfigSection(
             name = "Sleep Settings",
             description = "Set Sleep Settings",

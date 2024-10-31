@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import static net.runelite.client.plugins.microbot.storm.plugins.runecrafting.enums.State.*;
 import static net.runelite.client.plugins.microbot.util.Global.sleepUntilTrue;
 import static net.runelite.client.plugins.microbot.util.equipment.JewelleryLocationEnum.PVP_ARENA;
+import static net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory.get;
 import static net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory.items;
 import static net.runelite.client.plugins.microbot.util.math.Random.random;
 
@@ -130,6 +131,7 @@ public class RunecraftingScript extends Script {
                                         if (this.isRunning()) { sleep(61, 97); }
                                     }
                                 }
+
                             }
                             if (!hasItems()) {
                                 while (!bankIsOpen && this.isRunning()) {

@@ -3,10 +3,7 @@ package net.runelite.client.plugins.microbot.storm.common;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Item;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -51,7 +48,7 @@ public class Rs2Storm {
         }
 
         // Update recent items list
-        recentItems.add(selectedItem.getSlot());
+        recentItems.add(Objects.requireNonNull(selectedItem).getSlot());
         if (recentItems.size() > max_tries) {
             Iterator<Integer> iterator = recentItems.iterator();
             iterator.next();
@@ -77,7 +74,7 @@ public class Rs2Storm {
         }
 
         // Update recent item history
-        recentItems.add(selectedItem.getSlot());
+        recentItems.add(Objects.requireNonNull(selectedItem).getSlot());
         if (recentItems.size() > max_tries) {
             recentItems.remove(0); // Remove the oldest item
         }
