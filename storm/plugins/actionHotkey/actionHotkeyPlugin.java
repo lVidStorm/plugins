@@ -7,11 +7,16 @@ import net.runelite.client.input.KeyListener;
 import net.runelite.client.input.KeyManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.util.ImageUtil;
 
 import javax.inject.Inject;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 
 import static net.runelite.client.plugins.microbot.util.Global.sleep;
 
@@ -24,6 +29,10 @@ import static net.runelite.client.plugins.microbot.util.Global.sleep;
 @Slf4j
 public class actionHotkeyPlugin extends Plugin {
     public static int previousKey = 0;
+    private actionHotkeyPanel panel;
+    private NavigationButton navButton;
+    @Inject
+    private ClientToolbar clientToolbar;
     @Inject
     private actionHotkeyConfig config;
     @Provides
@@ -53,11 +62,31 @@ public class actionHotkeyPlugin extends Plugin {
         if (overlayManager != null) {
         }
         keyManager.registerKeyListener(hotkeyListener);
+        createPanel();
         actionHotkeyScript.run(config);
     }
     protected void shutDown() {
         keyManager.unregisterKeyListener(hotkeyListener);
+        removePanel();
         actionHotkeyScript.shutdown();
+    }
+    private void createPanel() {
+        if (panel == null) {
+            panel = new actionHotkeyPanel(this);
+            final BufferedImage icon = ImageUtil.loadImageResource(actionHotkeyPlugin.class, "icon.png");
+            navButton = NavigationButton.builder()
+                    .tooltip("Action Hotkeys")
+                    .icon(icon)
+                    .priority(7)
+                    .panel(panel)
+                    .build();
+            clientToolbar.addNavigation(navButton);
+        }
+    }
+    private void removePanel() {
+        clientToolbar.removeNavigation(navButton);
+        navButton = null;
+        panel = null;
     }
     private final KeyListener hotkeyListener = new KeyListener() {
         @Override

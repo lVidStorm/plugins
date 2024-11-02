@@ -1,6 +1,7 @@
 package net.runelite.client.plugins.microbot.storm.plugins.actionHotkey.enums;
 
 public enum cRs2Inventory implements Actionable {
+    NONE("none"),
     HAS_ITEM("hasItem");
 
     private final String actions;

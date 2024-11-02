@@ -32,6 +32,7 @@ public class WoodcuttingScript extends Script {
 
     public static String version = "1.6.3";
     public boolean cannotLightFire = false;
+    static int crowdStopOccurances;
 
     State state = State.WOODCUTTING;
     private static WorldPoint returnPoint;
@@ -45,19 +46,20 @@ public class WoodcuttingScript extends Script {
     }
 
     public boolean run(WoodcuttingConfig config) {
+        crowdStopOccurances = 0;
         if (config.hopWhenPlayerDetected()) {
             Microbot.showMessage("Make sure autologin plugin is enabled and randomWorld checkbox is checked!");
         }
-        Rs2Antiban.resetAntibanSettings();
-        Rs2Antiban.antibanSetupTemplates.applyWoodcuttingSetup();
-        Rs2AntibanSettings.dynamicActivity = true;
-        Rs2AntibanSettings.dynamicIntensity = true;
+        if (config.shouldUseAntiban()) { Rs2Antiban.resetAntibanSettings(); }
+        if (config.shouldUseAntiban()) { Rs2Antiban.antibanSetupTemplates.applyWoodcuttingSetup(); }
+        if (config.shouldUseAntiban()) { Rs2AntibanSettings.dynamicActivity = true; }
+        if (config.shouldUseAntiban()) { Rs2AntibanSettings.dynamicIntensity = true; }
         initialPlayerLocation = null;
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try {
                 if (!Microbot.isLoggedIn()) return;
                 if (!super.run()) return;
-                if(Rs2AntibanSettings.actionCooldownActive && config.shouldUseAntiban()) return;
+                if (Rs2AntibanSettings.actionCooldownActive && config.shouldUseAntiban()) return;
                 if (initialPlayerLocation == null) {
                     initialPlayerLocation = Rs2Player.getWorldLocation();
                 }
@@ -74,6 +76,26 @@ public class WoodcuttingScript extends Script {
                 //(isPlayerChoppingBestTree(config) && config.shouldGroup())
                 if (!(config.shouldGroup() && !isPlayerChoppingBestTree(config))
                         && (Rs2Player.isMoving() || Rs2Player.isInteracting() || Rs2Player.isAnimating() || Microbot.pauseAllScripts || (Rs2AntibanSettings.actionCooldownActive && config.shouldUseAntiban()))) {
+                    return;
+                }//TODO track how often this happens FUCK
+                if (config.crowd() && Microbot.getClient().getPlayers().stream()
+                        .filter(player -> player.getWorldLocation().equals(Rs2Player.getWorldLocation()))
+                        .count() < config.crowdTile() ) {
+                    crowdStopOccurances++;
+
+                    while(this.isRunning() && config.crowd() && Microbot.getClient().getPlayers().stream()
+                            .filter(player -> player.getWorldLocation().equals(Rs2Player.getWorldLocation()))
+                            .count() < config.crowdTile()) {
+                        if (!this.isRunning()) { break; }
+                        if(Microbot.getClient().getPlayers().stream()
+                                .filter(p -> p.getWorldLocation().distanceTo(Rs2Player.getWorldLocation()) <= config.crowdRadius())
+                                .count()<config.crowdSum()){
+                            Rs2Player.logout();
+                            super.shutdown();
+                            break;
+                        }
+                        sleep(100,600);
+                    }
                     return;
                 }
                 if (Rs2AntibanSettings.actionCooldownActive && config.shouldUseAntiban())

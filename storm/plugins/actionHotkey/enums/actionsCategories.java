@@ -9,7 +9,7 @@ public enum actionsCategories implements Actionable {
     RS2WIDGET("Rs2Widget"),
     RS2BANK("Rs2Bank"),
     RS2MAGIC("Rs2Magic"),
-    OTHER("aOther");
+    AOTHER("aOther");
 
     private final String actionscategories;
     actionsCategories(String actionscategories) {

@@ -2,6 +2,7 @@ package net.runelite.client.plugins.microbot.storm.modified.woodcutting;
 
 import net.runelite.api.Perspective;
 import net.runelite.api.coords.LocalPoint;
+import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPanel;
@@ -38,7 +39,10 @@ public class WoodcuttingOverlay extends OverlayPanel {
                     .text("Micro Woodcutting V" + WoodcuttingScript.version)
                     .color(Color.GREEN)
                     .build());
-
+            panelComponent.getChildren().add(TitleComponent.builder()
+                    .text("Times stopped for too few players : " + WoodcuttingScript.crowdStopOccurances)
+                    .color(PluginDescriptor.stormColor)
+                    .build());
             panelComponent.getChildren().add(LineComponent.builder()
                     .left(Microbot.status)
                     .build());

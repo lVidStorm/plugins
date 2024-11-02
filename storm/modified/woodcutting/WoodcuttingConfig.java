@@ -102,10 +102,50 @@ public interface WoodcuttingConfig extends Config {
         return false;
     }
     @ConfigItem(
+            keyName = "Crowd",
+            name = "Crowd",
+            description = "Should we stop moving if we're not under other players?",
+            position = 3
+    )
+    default boolean crowd()
+    {
+        return false;
+    }
+    @ConfigItem(
+            keyName = "Crowd Radius",
+            name = "Crowd Radius",
+            description = "What radius to check around the player for other players?",
+            position = 4
+    )
+    default int crowdRadius()
+    {
+        return 10;
+    }
+    @ConfigItem(
+            keyName = "Crowd Tile",
+            name = "Crowd Tile",
+            description = "How many players should there be in the same tile?",
+            position = 5
+    )
+    default int crowdTile()
+    {
+        return 5;
+    }
+    @ConfigItem(
+            keyName = "Crowd Sum",
+            name = "Crowd Sum",
+            description = "How many players should there be around the player before logging out?",
+            position = 6
+    )
+    default int crowdSum()
+    {
+        return 10;
+    }
+    @ConfigItem(
             keyName = "Group Trees",
             name = "Group Trees",
             description = "Should chop the tree with the highest player count?",
-            position = 3
+            position = 7
     )
     default boolean shouldGroup()
     {

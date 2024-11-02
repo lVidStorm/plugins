@@ -143,7 +143,7 @@ public class actionHotkeyScript extends Script {
                 case RS2MAGIC:
                     handleCommonAction(config.firstARs2Magic(), config.firstParameterOne(), config.firstParameterTwo());
                     break;
-                case OTHER:
+                case AOTHER:
                     handleCommonAction(config.firstAOther(), config.firstParameterOne(), config.firstParameterTwo());
                     break;
                 default:
@@ -186,7 +186,7 @@ public class actionHotkeyScript extends Script {
                 case RS2MAGIC:
                     handleCommonAction(config.secondARs2Magic(), config.secondParameterOne(), config.secondParameterTwo());
                     break;
-                case OTHER:
+                case AOTHER:
                     handleCommonAction(config.secondAOther(), config.secondParameterOne(), config.secondParameterTwo());
                     break;
                 default:
@@ -205,7 +205,7 @@ public class actionHotkeyScript extends Script {
     public boolean firstConditional() {
             switch (config.firstConditionCategoryName()) {
                 case NONE:
-                    return handleCommonCondition(config.firstCOther(), config.firstConditionParameterOne(), config.firstConditionParameterTwo());
+                    return handleCommonCondition(config.firstCNone(), config.firstConditionParameterOne(), config.firstConditionParameterTwo());
                 case RS2INVENTORY:
                     return handleCommonCondition(config.firstCRs2Inventory(), config.firstConditionParameterOne(), config.firstConditionParameterTwo());
                 default:
@@ -224,7 +224,7 @@ public class actionHotkeyScript extends Script {
     public boolean secondConditional() {
         switch (config.secondConditionCategoryName()) {
             case NONE:
-                return handleCommonCondition(config.secondCOther(), config.secondConditionParameterOne(), config.secondConditionParameterTwo());
+                return handleCommonCondition(config.secondCNone(), config.secondConditionParameterOne(), config.secondConditionParameterTwo());
             case RS2INVENTORY:
                 return handleCommonCondition(config.secondCRs2Inventory(), config.secondConditionParameterOne(), config.secondConditionParameterTwo());
             default:
@@ -465,8 +465,8 @@ public class actionHotkeyScript extends Script {
     }
     public boolean condition(Actionable action){
         if (this.isRunning()) {
-            if(action instanceof cOther) {
-                switch ((cOther) action) {
+            if(action instanceof cNone) {
+                switch ((cNone) action) {
                     case NONE:
                         return true;
                 }
@@ -476,8 +476,8 @@ public class actionHotkeyScript extends Script {
     }
     public boolean condition(Actionable action, int ID){
         if (this.isRunning()) {
-            if(action instanceof cOther) {
-                switch ((cOther) action) {
+            if(action instanceof cNone) {
+                switch ((cNone) action) {
                     case NONE:
                         return true;
                 }
@@ -491,8 +491,8 @@ public class actionHotkeyScript extends Script {
     }
     public boolean condition(Actionable action, String name){
         if (this.isRunning()) {
-            if(action instanceof cOther) {
-                switch ((cOther) action) {
+            if(action instanceof cNone) {
+                switch ((cNone) action) {
                     case NONE:
                         return true;
                 }
@@ -506,8 +506,8 @@ public class actionHotkeyScript extends Script {
     }
     public boolean condition(Actionable action, int ID, String name){
         if (this.isRunning()) {
-            if(action instanceof cOther) {
-                switch ((cOther) action) {
+            if(action instanceof cNone) {
+                switch ((cNone) action) {
                     case NONE:
                         return true;
                 }
@@ -517,8 +517,8 @@ public class actionHotkeyScript extends Script {
     }
     public boolean condition(Actionable action, String name, int value){
         if (this.isRunning()) {
-            if(action instanceof cOther) {
-                switch ((cOther) action) {
+            if(action instanceof cNone) {
+                switch ((cNone) action) {
                     case NONE:
                         return true;
                 }
@@ -528,8 +528,8 @@ public class actionHotkeyScript extends Script {
     }
     public boolean condition(Actionable action, int ID, int value){
         if (this.isRunning()) {
-            if(action instanceof cOther) {
-                switch ((cOther) action) {
+            if(action instanceof cNone) {
+                switch ((cNone) action) {
                     case NONE:
                         return true;
                 }
@@ -539,8 +539,8 @@ public class actionHotkeyScript extends Script {
     }
     public boolean condition(Actionable action, String name, String ID){
         if (this.isRunning()) {
-            if(action instanceof cOther) {
-                switch ((cOther) action) {
+            if(action instanceof cNone) {
+                switch ((cNone) action) {
                     case NONE:
                         return true;
                 }

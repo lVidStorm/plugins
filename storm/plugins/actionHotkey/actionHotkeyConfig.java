@@ -157,6 +157,8 @@ public interface actionHotkeyConfig extends Config {
     default String firstConditionParameterTwo() { return ""; }
     @ConfigItem(keyName = "firstCRs2Inventory", name = "condition for firstCRs2Inventory", description = "What should the condition be for hotkey 1?", position = 3, section = firstConditionCategories)
     default cRs2Inventory firstCRs2Inventory() { return cRs2Inventory.HAS_ITEM; }
+    @ConfigItem(keyName = "firstCNone", name = "condition for firstCNone", description = "What should the condition be for hotkey 1?", position = 3, section = firstConditionCategories)
+    default cNone firstCNone() { return cNone.NONE; }
     @ConfigItem(keyName = "firstCOther", name = "condition for firstCOther", description = "What should the condition be for hotkey 1?", position = 3, section = firstConditionCategories)
     default cOther firstCOther() { return cOther.NONE; }
 
@@ -164,11 +166,12 @@ public interface actionHotkeyConfig extends Config {
     default String secondConditionParameterOne() { return ""; }
     @ConfigItem(keyName = "secondParameterTwo", name = "second parameter for condition two?", description = "second parameter for second condition?", position = 1, section = secondConditionCategories)
     default String secondConditionParameterTwo() { return ""; }
-    @ConfigItem(keyName = "secondCondition", name = "condition for second", description = "What should the condition be for hotkey 1?", position = 3, section = secondConditionCategories)
+    @ConfigItem(keyName = "secondCRs2Inventory", name = "condition for second", description = "What should the condition be for hotkey 1?", position = 3, section = secondConditionCategories)
     default cRs2Inventory secondCRs2Inventory() { return cRs2Inventory.HAS_ITEM; }
-    @ConfigItem(keyName = "secondCondition", name = "condition for second", description = "What should the condition be for hotkey 2?", position = 3, section = secondConditionCategories)
+    @ConfigItem(keyName = "secondCNone", name = "condition for secondCNone", description = "What should the condition be for hotkey 1?", position = 3, section = secondConditionCategories)
+    default cNone secondCNone() { return cNone.NONE; }
+    @ConfigItem(keyName = "secondCOther", name = "condition for second", description = "What should the condition be for hotkey 2?", position = 3, section = secondConditionCategories)
     default cOther secondCOther() { return cOther.NONE; }
-
 
     @ConfigItem(keyName = "doAction", name = "Do Action?", description = "do you want this action done?", position = 0, section = debug)
     default boolean doAction() { return true; }
