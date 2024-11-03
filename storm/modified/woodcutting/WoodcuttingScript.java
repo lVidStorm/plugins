@@ -73,8 +73,7 @@ public class WoodcuttingScript extends Script {
                 }
                 //TODO update this so we also check for new highest player count trees~
                 //TODO this needs to be changed so that it will continue if we aren't chopping the best tree
-                //(isPlayerChoppingBestTree(config) && config.shouldGroup())
-                if (!(config.shouldGroup() && !isPlayerChoppingBestTree(config))
+                if (((config.shouldGroup() && isPlayerChoppingBestTree(config)) || !config.shouldGroup())
                         && (Rs2Player.isMoving() || Rs2Player.isInteracting() || Rs2Player.isAnimating() || Microbot.pauseAllScripts || (Rs2AntibanSettings.actionCooldownActive && config.shouldUseAntiban()))) {
                     return;
                 }//TODO track how often this happens FUCK
@@ -107,8 +106,10 @@ public class WoodcuttingScript extends Script {
                             if (Rs2Player.logoutIfPlayerDetected(1, 10000))
                                 return;
                         }
-                        if (Rs2Equipment.isWearing("Dragon axe") || Rs2Equipment.isWearing("Dragon felling axe"))
+                        if (Rs2Equipment.isWearing("Dragon axe") || Rs2Equipment.isWearing("Dragon felling axe")) {
                             Rs2Combat.setSpecState(true, 1000);
+                            sleep(127, 400);
+                        }
                         if (Rs2Inventory.isFull()) {
                             state = State.RESETTING;
                             return;
@@ -256,7 +257,7 @@ public class WoodcuttingScript extends Script {
          */
         // Get the player's current location and orientation
         WorldPoint playerLocation = Rs2Player.getWorldLocation();
-        int playerOrientation = Microbot.getClient().getLocalPlayer().getOrientation();
+        int playerOrientation = Microbot.getClient().getLocalPlayer().getCurrentOrientation();
         // Get the selected tree's location
         WorldPoint treeLocation = selectedTree.getWorldLocation();
 
@@ -273,12 +274,12 @@ public class WoodcuttingScript extends Script {
         if (playerLocation.distanceTo(treeLocation) <= 3) {
             //TODO issue here, angle is calculating well above 360.
             // Check if the player's orientation is close to the angle of the tree (within a threshold)
-            if (Math.abs(playerOrientation - angleToTree) < 1792) {
-                System.out.println("Player is chopping the best tree.");
+            if (Math.abs(playerOrientation - angleToTree) < 1792 && Rs2Player.isAnimating(random(100,400))) {
+                System.out.println("Player is chopping the best tree. Player's angle : "+convertAngle((int)Math.abs(playerOrientation - angleToTree)));
                 return true;
             } else {
 
-                System.out.println("Player is near the best tree but not facing it. : "+convertAngle((int)Math.abs(playerOrientation - angleToTree)));
+                System.out.println("Player is near the best tree but not facing it. Player's angle : "+convertAngle((int)Math.abs(playerOrientation - angleToTree)));
             }
         } else {
             System.out.println("Player is not near the best tree.");
@@ -310,7 +311,7 @@ public class WoodcuttingScript extends Script {
                         // Check if player is near the tree (within 1 tile)
                         if (playerLocationNearby.distanceTo(treeLocation) <= 3) {
                             // Calculate player's facing direction (orientation) compared to the tree's location
-                            int playerOrientation = player.getOrientation();
+                            int playerOrientation = player.getCurrentOrientation();
                             int deltaX = treeLocation.getX() - playerLocationNearby.getX();
                             int deltaY = treeLocation.getY() - playerLocationNearby.getY();
                             double angleToTree = Math.toDegrees(Math.atan2(deltaY, deltaX));
@@ -320,6 +321,7 @@ public class WoodcuttingScript extends Script {
                             }
 
                             // Check if the player's facing angle is within a 30-degree threshold of the tree
+                            //can't check if the player is chopping the tree because we don't track their animations. so if we try to check their animation here it may give us idle because animation constantly changes.
                             if (Math.abs(playerOrientation - angleToTree) < 1792) {
                                 playersCutting++;  // Player is likely cutting the tree if they are near and facing it
                             }
