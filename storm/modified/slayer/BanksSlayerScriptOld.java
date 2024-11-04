@@ -41,7 +41,7 @@ public class BanksSlayerScriptOld extends Script {
     private static final int HEALTH_HISTORY_SIZE = 3; // Number of health checks to store
     private NPC lastInteractingNPC = null;
 
-    private BanksSlayerConfig config;
+    private SlayerConfig config;
     private OverlayManager overlayManager;
     private Client client;
     private ConfigManager configManager;
@@ -77,7 +77,7 @@ public class BanksSlayerScriptOld extends Script {
 
     private volatile boolean isActive = false;
 
-    public boolean run(BanksSlayerConfig config) {
+    public boolean run(SlayerConfig config) {
         this.config = config;
 
         final SlayerMasters selectedSlayerMaster = config.slayerMaster();

@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 
 @PluginDescriptor(
-        name = "<html>[<font color=#ff00ff>§</font>] " + "zGuardiansOfTheRift",
+        name = PluginDescriptor.eXioStorm + "zGuardiansOfTheRift",
         description = "zGuardians of the rift plugin",
         tags = {"runecrafting", "guardians of the rift", "gotr", "microbot"},
         enabledByDefault = false

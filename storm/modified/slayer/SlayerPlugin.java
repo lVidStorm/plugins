@@ -34,9 +34,9 @@ import java.util.concurrent.TimeUnit;
 
 
 @PluginDescriptor(
-        name = PluginDescriptor.Bank + "Bank's AIO Slayer",
-        description = "Bank's AIO Slayer",
-        tags = {"slayer", "bank.js"},
+        name = PluginDescriptor.eXioStorm + "AIO Slayer",
+        description = "AIO Slayer",
+        tags = {"slayer", "storm"},
         enabledByDefault = false
 )
 @Slf4j

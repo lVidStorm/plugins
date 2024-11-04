@@ -803,6 +803,8 @@ public class SlayerScript extends Script {
         }
     }
 
+    //TODO change this to get the IDs from the names, and works as an int list instead, so that either id or name will work.
+    //menu = (firstItemId != null ? Microbot.getClientThread().runOnClientThread(() -> Microbot.getClient().getItemDefinition(firstItemId).getName().toLowerCase().contains("grimy")) : firstItemIdentifier.toLowerCase().contains("grimy")) ? "clean" : "use";
     private List<String> parseLootItems(String lootItems) {
         return Arrays.stream(lootItems.split(","))
                 .map(String::trim)

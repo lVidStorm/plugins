@@ -8,7 +8,8 @@ import lombok.RequiredArgsConstructor;
 public enum SlayerMasters {
     TURAEL("Turael"),
     NIEVE("Nieve"),
-    STEVE("Steve");
+    STEVE("Steve"),
+    DURADEL("Duradel");
 
     private final String slayerMaster;
 

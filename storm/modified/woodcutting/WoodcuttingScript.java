@@ -80,22 +80,29 @@ public class WoodcuttingScript extends Script {
                 if (config.crowd() && Microbot.getClient().getPlayers().stream()
                         .filter(player -> player.getWorldLocation().equals(Rs2Player.getWorldLocation()))
                         .count() < config.crowdTile() ) {
-                    crowdStopOccurances++;
-
-                    while(this.isRunning() && config.crowd() && Microbot.getClient().getPlayers().stream()
-                            .filter(player -> player.getWorldLocation().equals(Rs2Player.getWorldLocation()))
-                            .count() < config.crowdTile()) {
-                        if (!this.isRunning()) { break; }
-                        if(Microbot.getClient().getPlayers().stream()
-                                .filter(p -> p.getWorldLocation().distanceTo(Rs2Player.getWorldLocation()) <= config.crowdRadius())
-                                .count()<config.crowdSum()){
-                            Rs2Player.logout();
-                            super.shutdown();
-                            break;
+                    if(Rs2Player.getWorldLocation()!=initialPlayerLocation){
+                        Rs2Walker.walkFastCanvas(initialPlayerLocation);
+                        sleep(100,400);
+                        return;
+                    } else {
+                        crowdStopOccurances++;
+                        while (this.isRunning() && config.crowd() && Microbot.getClient().getPlayers().stream()
+                                .filter(player -> player.getWorldLocation().equals(Rs2Player.getWorldLocation()))
+                                .count() < config.crowdTile()) {
+                            if (!this.isRunning()) {
+                                break;
+                            }
+                            if (Microbot.getClient().getPlayers().stream()
+                                    .filter(p -> p.getWorldLocation().distanceTo(Rs2Player.getWorldLocation()) <= config.crowdRadius())
+                                    .count() < config.crowdSum()) {
+                                Rs2Player.logout();
+                                super.shutdown();
+                                break;
+                            }
+                            sleep(100, 600);
                         }
-                        sleep(100,600);
+                        return;
                     }
-                    return;
                 }
                 if (Rs2AntibanSettings.actionCooldownActive && config.shouldUseAntiban())
                     return;
@@ -262,28 +269,30 @@ public class WoodcuttingScript extends Script {
         WorldPoint treeLocation = selectedTree.getWorldLocation();
 
         // Calculate the angle from the player to the tree
+        // Calculate the angle from the player to the tree in degrees
         int deltaX = treeLocation.getX() - playerLocation.getX();
         int deltaY = treeLocation.getY() - playerLocation.getY();
-        double angleToTree = Math.toDegrees(Math.atan2(deltaY, deltaX));
+        double angleToTreeDegrees = Math.toDegrees(Math.atan2(deltaY, deltaX));
 
+// Convert angle to the 2048-based scale
+        int angleToTree = (int) ((angleToTreeDegrees * 2048) / 360);
         if (angleToTree < 0) {
-            angleToTree += 2047;  // Normalize angle to be between 0 and 360 degrees
+            angleToTree += 2048;  // Normalize to be between 0 and 2048
         }
 
-        // Check if the player is within interaction range (1 tile)
-        if (playerLocation.distanceTo(treeLocation) <= 3) {
-            //TODO issue here, angle is calculating well above 360.
-            // Check if the player's orientation is close to the angle of the tree (within a threshold)
-            if (Math.abs(playerOrientation - angleToTree) < 1792 && Rs2Player.isAnimating(random(100,400))) {
-                System.out.println("Player is chopping the best tree. Player's angle : "+convertAngle((int)Math.abs(playerOrientation - angleToTree)));
+// Ensure the player's angle is close enough to the tree's angle, accounting for orientation range
+        if (Math.abs(playerOrientation - angleToTree) < 1792 ||
+                Math.abs((playerOrientation - angleToTree + 2048) % 2048) < 1792) {
+            if (Rs2Player.isAnimating(random(100, 400))) {
+                System.out.println("Player is chopping the best tree. Player's angle : " + convertAngle(angleToTree));
                 return true;
             } else {
-
-                System.out.println("Player is near the best tree but not facing it. Player's angle : "+convertAngle((int)Math.abs(playerOrientation - angleToTree)));
+                System.out.println("Player is near the best tree but not facing it. Player's angle : " + convertAngle(angleToTree));
             }
         } else {
             System.out.println("Player is not near the best tree.");
         }
+
 
         return false;  // Player is not chopping the best tree
     }

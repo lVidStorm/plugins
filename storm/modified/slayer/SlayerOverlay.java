@@ -1,5 +1,6 @@
 package net.runelite.client.plugins.microbot.storm.modified.slayer;
 
+import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
@@ -29,8 +30,8 @@ public class SlayerOverlay extends OverlayPanel {
 
             // Add title with custom color
             panelComponent.getChildren().add(TitleComponent.builder()
-                    .text("Bank's AIO Slayer [BETA]")
-                    .color(Color.CYAN)
+                    .text("AIO Slayer")
+                    .color(PluginDescriptor.stormColor)
                     .build());
 
             // Add separator line

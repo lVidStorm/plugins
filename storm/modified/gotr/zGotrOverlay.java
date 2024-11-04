@@ -1,5 +1,6 @@
 package net.runelite.client.plugins.microbot.storm.modified.gotr;
 
+import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;
@@ -33,8 +34,8 @@ public class zGotrOverlay extends OverlayPanel {
         try {
             panelComponent.setPreferredSize(new Dimension(200, 300));
             panelComponent.getChildren().add(TitleComponent.builder()
-                    .text("Micro Guardians of the rift V" + zGotrScript.version)
-                    .color(Color.GREEN)
+                    .text("Guardians of the rift V" + zGotrScript.version)
+                    .color(PluginDescriptor.stormColor)
                     .build());
 
             panelComponent.getChildren().add(LineComponent.builder().build());
