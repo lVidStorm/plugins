@@ -17,8 +17,7 @@ import java.awt.*;
            closedByDefault = true
    )
    String playerAlarm = "Player Alarm";
-   @ConfigItem(keyName = "useAlarm", name = "Use Alarm?", description = "Toggle the player vicinity alarm", position = 0, section = playerAlarm)
-   default boolean usePlayerAlarm() { return true; }
+
    @Range(max = 30, min = 0)
    @ConfigItem(keyName = "alarmRadius", name = "Alarm radius", description = "Distance for another player to trigger the alarm. WARNING: Players within range that are not rendered will not trigger the alarm.", position = 0, section = playerAlarm)
    default int alarmRadius() { return 15; }
@@ -34,14 +33,16 @@ import java.awt.*;
    default boolean ignoreIgnored() { return false; }
    @ConfigItem(keyName = "timeoutToIgnore", name = "Timeout", description = "Ignores players after they've been present for the specified time (in seconds). A value of 0 means players won't be ignored regardless of how long they are present.", position = 7, section = playerAlarm)
    default int timeoutToIgnore() { return 0; }
+   @ConfigItem(keyName = "useFlash", name = "Use Flash?", description = "Toggle the screen flash effect", position = 0, section = playerAlarm)
+   default boolean useFlash() { return true; }
    @Alpha
    @ConfigItem(keyName = "flashColor", name = "Flash color", description = "Sets the color of the alarm flashes", position = 8, section = playerAlarm)
    default Color flashColor()
    { return new Color(255, 255, 0, 70); }
    @ConfigItem(keyName = "playSound", name = "Play Sound?", description = "Would you like the alarm to be audible as well?", position = 9, section = playerAlarm)
-   default boolean playSound() { return true; }
+   default boolean playAlarmSound() { return true; }
    @ConfigItem(keyName = "PASoundIDs", name = "SoundID", description = "Pick Sound ID to play", position = 10, section = playerAlarm)
-   default SoundEffectID paSoundID() { return SoundEffectID.GE_INCREMENT_PLOP; }
+   default SoundEffectID alarmSoundID() { return SoundEffectID.GE_INCREMENT_PLOP; }
    @ConfigItem(keyName = "Emergency Options", name = "Emergency Options", description = "Do something when other players are detected?", position = 11, section = playerAlarm)
    default boolean useEmergency() { return true; }
    @ConfigItem(keyName = "Emergency Action", name = "Emergency Action", description = "What do you want to do when other players are detected?", position = 12, section = playerAlarm)
@@ -65,8 +66,8 @@ import java.awt.*;
    default boolean clickSound() {
      return false;
    }
-   @ConfigItem(keyName = "CSoundIDs", name = "SoundID", description = "Pick Sound ID to play", position = 2, section = playerAlarm)
-   default SoundEffectID clickSoundID() { return SoundEffectID.GE_INCREMENT_PLOP; }
+   @ConfigItem(position = 2, keyName = "CSoundIDs", name = "SoundID", description = "Pick Sound ID to play", section = other)
+   default SoundEffectID clickSoundID() { return SoundEffectID.UI_BOOP; }
    //TODO have selection here for what sound to play
  }
  enum runOptions {

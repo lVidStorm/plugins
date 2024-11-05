@@ -1,6 +1,7 @@
 package net.runelite.client.plugins.microbot.storm.plugins.playermonitor;
 
 import com.google.inject.Provides;
+import lombok.Getter;
 import net.runelite.api.Actor;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
@@ -11,12 +12,9 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.Notifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.input.MouseListener;
 import net.runelite.client.input.MouseManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.plugins.microbot.storm.plugins.playermonitor.zMouseClickCounterListener;
-import net.runelite.client.plugins.microbot.storm.plugins.playermonitor.ClickCounterOverlay;
 import net.runelite.client.ui.overlay.OverlayManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,25 +39,29 @@ import java.util.stream.Collectors;
    @Inject
    private PlayerMonitorConfig config;
    @Inject
+   private PlayerMonitorScript playerMonitorScript;
+   @Inject
    private OverlayManager overlayManager;
    @Inject
-   private ClickCounterOverlay clickCounterOverlay;
+   private MouseOverlay mouseOverlay;
    @Inject
-   private PlayerAlarmOverlay playerAlarmOverlay;
+   private FlashOverlay flashOverlay;
    @Inject
    private Notifier notifier;
    @Inject
    private MouseManager mouseManager;
-   private zMouseClickCounterListener mouseListener;
+   private MouseListener mouseListener;
    
+   @Getter
    private boolean overlayOn = false;
    private final HashMap<String, Integer> playerNameToTimeInRange = new HashMap<>();
 
 
    protected void startUp() throws Exception {
-     overlayManager.add(clickCounterOverlay);
-     this.mouseListener = new zMouseClickCounterListener(this.client);
-     this.mouseManager.registerMouseListener((MouseListener) this.mouseListener);
+     overlayManager.add(mouseOverlay);
+     this.mouseListener = new MouseListener(this.client, this.config);
+     this.mouseManager.registerMouseListener((net.runelite.client.input.MouseListener) this.mouseListener);
+     playerMonitorScript.run(config, overlayManager);
    }
 
    @Subscribe
@@ -72,11 +74,9 @@ import java.util.stream.Collectors;
        if (this.config.desktopNotification())
        { this.notifier.notify("Player spotted!"); }
        this.overlayOn = true;
-       this.overlayManager.add(this.playerAlarmOverlay);
      }
      if (!shouldAlarm) {
        this.overlayOn = false;
-       this.overlayManager.remove(this.playerAlarmOverlay);
      } 
    }
    private List<Player> getPlayersInRange() {
@@ -103,7 +103,8 @@ import java.util.stream.Collectors;
      }
      return true;
    }
-   private void updatePlayersInRange() {
+
+     private void updatePlayersInRange() {
      List<Player> playersInRange = getPlayersInRange();
      for (Player player : playersInRange) {
        String playerName = player.getName();
@@ -117,13 +118,17 @@ import java.util.stream.Collectors;
      }
    }
    protected void shutDown() throws Exception {
-     this.overlayManager.remove(this.clickCounterOverlay);
+     this.overlayManager.remove(this.mouseOverlay);
+     if (this.flashOverlay != null) {
+       overlayManager.remove(flashOverlay); // Remove FlashOverlay on shutdown
+     }
      this.mouseListener.saveMouseClicks();
-     this.mouseManager.unregisterMouseListener((MouseListener)this.mouseListener);
+     this.mouseManager.unregisterMouseListener((net.runelite.client.input.MouseListener)this.mouseListener);
      this.mouseListener = null;
        if (this.overlayOn) {
        this.overlayOn = false;
-       this.overlayManager.remove(this.playerAlarmOverlay);
+       playerMonitorScript.shutdown();
+       //this.overlayManager.remove(this.playerAlarmOverlay);
 
      } 
    }
@@ -140,6 +145,7 @@ import java.util.stream.Collectors;
    PlayerMonitorConfig provideConfig(ConfigManager configManager) {
      return configManager.getConfig(PlayerMonitorConfig.class);
    }
+
  }
 
 

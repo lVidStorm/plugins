@@ -8,13 +8,13 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class ClickCounterOverlay extends OverlayPanel {
+public class MouseOverlay extends OverlayPanel {
     private final PlayerMonitorConfig config;
     private final PlayerMonitorPlugin plugin;
     private int size;
     private ArrayList<Integer> previousSelections;
     @Inject
-    ClickCounterOverlay(PlayerMonitorConfig config, PlayerMonitorPlugin plugin) {
+    MouseOverlay(PlayerMonitorConfig config, PlayerMonitorPlugin plugin) {
         this.config = config;
         this.plugin = plugin;
         this.size = 0;

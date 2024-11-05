@@ -1,20 +1,25 @@
-package net.runelite.client.plugins.microbot.storm.plugins.playermonitor;
+package net.runelite.client.plugins.microbot.storm.plugins.mouseclickcounter;
 
-import net.runelite.api.Client;
-import net.runelite.api.GameState;
-import net.runelite.client.RuneLite;
-import net.runelite.client.input.MouseAdapter;
-
-import javax.swing.*;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
+import javax.swing.SwingUtilities;
+import net.runelite.api.Client;
+import net.runelite.api.GameState;
+import net.runelite.client.RuneLite;
+import net.runelite.client.input.MouseAdapter;
 
-public class zMouseClickCounterListener extends MouseAdapter {
+public class MouseClickCounterListener extends MouseAdapter {
   private int leftClickCounter;
+  
+  private int rightClickCounter;
+  
+  private int middleClickCounter;
+  
+  private int totalClickCounter;
   
   private final Client client;
   
@@ -27,7 +32,10 @@ public class zMouseClickCounterListener extends MouseAdapter {
   private final int NUM_CLICK_TYPES = 4;
   
   private enum FILE_CLICK_TYPE_INDICES {
-    LEFT(1);
+    TOTAL(0),
+    LEFT(1),
+    RIGHT(2),
+    MIDDLE(3);
     
     private final int index;
     
@@ -40,7 +48,7 @@ public class zMouseClickCounterListener extends MouseAdapter {
     }
   }
   
-  zMouseClickCounterListener(Client client) throws FileNotFoundException {
+  public MouseClickCounterListener(Client client) throws FileNotFoundException {
     loadMouseClicks();
     this.client = client;
   }
@@ -49,8 +57,15 @@ public class zMouseClickCounterListener extends MouseAdapter {
     if (this.client.getGameState() == GameState.LOGGED_IN) {
       if (SwingUtilities.isLeftMouseButton(event)) {
         this.leftClickCounter++;
-      }
-      if (this.leftClickCounter % 50 == 0)
+        this.totalClickCounter++;
+      } else if (SwingUtilities.isRightMouseButton(event)) {
+        this.rightClickCounter++;
+        this.totalClickCounter++;
+      } else if (SwingUtilities.isMiddleMouseButton(event)) {
+        this.middleClickCounter++;
+        this.totalClickCounter++;
+      } 
+      if (this.totalClickCounter % 50 == 0)
         try {
           saveMouseClicks();
         } catch (IOException e) {
@@ -64,8 +79,23 @@ public class zMouseClickCounterListener extends MouseAdapter {
     return this.leftClickCounter;
   }
   
+  public int getRightClickCounter() {
+    return this.rightClickCounter;
+  }
+  
+  public int getMiddleClickCounter() {
+    return this.middleClickCounter;
+  }
+  
+  public int getTotalClickCounter() {
+    return this.totalClickCounter;
+  }
+  
   public void resetMouseClickCounterListener() {
     this.leftClickCounter = 0;
+    this.rightClickCounter = 0;
+    this.middleClickCounter = 0;
+    this.totalClickCounter = 0;
     try {
       saveMouseClicks();
     } catch (IOException e) {
@@ -82,8 +112,11 @@ public class zMouseClickCounterListener extends MouseAdapter {
         e.printStackTrace();
       }  
     FileWriter writer = new FileWriter(this.CLICK_TOTAL_FILE);
-    Integer[] totals = { Integer.valueOf(getLeftClickCounter()) };
+    Integer[] totals = { Integer.valueOf(getTotalClickCounter()), Integer.valueOf(getLeftClickCounter()), Integer.valueOf(getRightClickCounter()), Integer.valueOf(getMiddleClickCounter()) };
+    writer.write("" + totals[FILE_CLICK_TYPE_INDICES.TOTAL.getValue()] + " ");
     writer.write("" + totals[FILE_CLICK_TYPE_INDICES.LEFT.getValue()] + " ");
+    writer.write("" + totals[FILE_CLICK_TYPE_INDICES.RIGHT.getValue()] + " ");
+    writer.write("" + totals[FILE_CLICK_TYPE_INDICES.MIDDLE.getValue()] + " ");
     writer.close();
   }
   
@@ -99,11 +132,20 @@ public class zMouseClickCounterListener extends MouseAdapter {
       } else {
         this
           .leftClickCounter = totals[FILE_CLICK_TYPE_INDICES.LEFT.getValue()];
+        this
+          .rightClickCounter = totals[FILE_CLICK_TYPE_INDICES.RIGHT.getValue()];
+        this
+          .middleClickCounter = totals[FILE_CLICK_TYPE_INDICES.MIDDLE.getValue()];
+        this
+          .totalClickCounter = totals[FILE_CLICK_TYPE_INDICES.TOTAL.getValue()];
       } 
     } else {
       try {
         if (this.CLICK_TOTAL_FILE.createNewFile()) {
           this.leftClickCounter = 0;
+          this.rightClickCounter = 0;
+          this.middleClickCounter = 0;
+          this.totalClickCounter = 0;
         } else {
           System.out.println("Failed to create log file");
         } 
