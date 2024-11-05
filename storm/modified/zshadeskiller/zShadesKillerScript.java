@@ -345,8 +345,12 @@ public class zShadesKillerScript extends Script {
                             sleep(10000, 11200);
                         }
                         int nextWorld = Worlds.get((Worlds.indexOf(Microbot.getClient().getWorld())+1) % Worlds.size());
+                        if (this.isRunning()) { Microbot.getClient().openWorldHopper(); }
+                        if (this.isRunning()) { sleepUntil(() -> Rs2Widget.hasWidget("Current world - "+Rs2Player.getWorld())); }
+                        sleep(61,97);
                         Microbot.hopToWorld(nextWorld);
-                        sleep(6000,7200);
+                        if (this.isRunning()) { sleepUntil(() -> Rs2Widget.hasWidget("Current world - "+Rs2Player.getWorld())); }
+                        sleep(61,97);
                         if(Microbot.getClient().getWorld()!=nextWorld) return;
                         teleportToBank = false;
                         teleportToShades = true;

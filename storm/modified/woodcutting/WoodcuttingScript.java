@@ -80,9 +80,13 @@ public class WoodcuttingScript extends Script {
                 if (config.crowd() && Microbot.getClient().getPlayers().stream()
                         .filter(player -> player.getWorldLocation().equals(Rs2Player.getWorldLocation()))
                         .count() < config.crowdTile() ) {
-                    if(Rs2Player.getWorldLocation()!=initialPlayerLocation){
-                        Rs2Walker.walkFastCanvas(initialPlayerLocation);
+                    if(Rs2Player.getWorldLocation().getX() != returnPoint.getX()
+                            && Rs2Player.getWorldLocation().getY() != returnPoint.getY()){
+                        Rs2Walker.walkFastCanvas(returnPoint);
+                        sleepUntil(Rs2Player::isMoving,655);
+                        sleepUntil(()-> !Rs2Player.isMoving());
                         sleep(100,400);
+                        returnPoint=Rs2Player.getWorldLocation();
                         return;
                     } else {
                         crowdStopOccurances++;

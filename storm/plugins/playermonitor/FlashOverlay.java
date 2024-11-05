@@ -2,7 +2,6 @@ package net.runelite.client.plugins.microbot.storm.plugins.playermonitor;
 
 import java.awt.*;
 
-import lombok.Setter;
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;

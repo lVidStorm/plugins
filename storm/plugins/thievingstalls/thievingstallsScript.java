@@ -38,7 +38,7 @@ public class thievingstallsScript extends Script {
         needToDrop=false;
         this.config = config;
         timeSinceSteal=System.currentTimeMillis();
-        java.util.List<String> doNotDropItemList = Arrays.stream(config.DoNotDropItemList().split(",")).collect(Collectors.toList());
+        java.util.List<String> doNotDropItemList = Arrays.stream(config.DoNotDropItemList().split(", ")).collect(Collectors.toList());
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try {
                 if (!Microbot.isLoggedIn()) return;
