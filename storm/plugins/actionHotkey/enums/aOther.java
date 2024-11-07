@@ -1,7 +1,8 @@
 package net.runelite.client.plugins.microbot.storm.plugins.actionHotkey.enums;
 
 public enum aOther implements Actionable {
-    PRINTLN("println");
+    PRINTLN("println"),
+    CLICK("click");
 
     private final String actions;
     aOther(String actions) {

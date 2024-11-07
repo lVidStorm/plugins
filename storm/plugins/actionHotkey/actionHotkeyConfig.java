@@ -151,25 +151,33 @@ public interface actionHotkeyConfig extends Config {
     @ConfigItem(keyName = "secondAOther", name = "Other Action", description = "pick action for aOther", position = 3, section = secondActionCategories)
     default aOther secondAOther() { return aOther.PRINTLN; }
 
-    @ConfigItem(keyName = "firstConditionParameterOne", name = "first parameter for condition one?", description = "what parameter one for first condition?", position = 0, section = firstConditionCategories)
+    @ConfigItem(keyName = "firstConditionInvert", name = "invert condition one?", description = "invert the condition so you can check for false", position = 0, section = firstConditionCategories)
+    default boolean firstConditionInvert() { return false; }
+    @ConfigItem(keyName = "firstConditionParameterOne", name = "first parameter for condition one?", description = "what parameter one for first condition?", position = 1, section = firstConditionCategories)
     default String firstConditionParameterOne() { return ""; }
-    @ConfigItem(keyName = "firstConditionParameterTwo", name = "second parameter for condition one?", description = "what parameter two for first condition?", position = 1, section = firstConditionCategories)
+    @ConfigItem(keyName = "firstConditionParameterTwo", name = "second parameter for condition one?", description = "what parameter two for first condition?", position = 2, section = firstConditionCategories)
     default String firstConditionParameterTwo() { return ""; }
     @ConfigItem(keyName = "firstCRs2Inventory", name = "condition for firstCRs2Inventory", description = "What should the condition be for hotkey 1?", position = 3, section = firstConditionCategories)
     default cRs2Inventory firstCRs2Inventory() { return cRs2Inventory.HAS_ITEM; }
     @ConfigItem(keyName = "firstCNone", name = "condition for firstCNone", description = "What should the condition be for hotkey 1?", position = 3, section = firstConditionCategories)
     default cNone firstCNone() { return cNone.NONE; }
+    @ConfigItem(keyName = "firstCRs2Player", name = "condition for firstCRs2Player", description = "What should the condition be for hotkey 1?", position = 3, section = firstConditionCategories)
+    default cRs2Player firstCRs2Player() { return cRs2Player.IS_MOVING; }
     @ConfigItem(keyName = "firstCOther", name = "condition for firstCOther", description = "What should the condition be for hotkey 1?", position = 3, section = firstConditionCategories)
     default cOther firstCOther() { return cOther.NONE; }
 
-    @ConfigItem(keyName = "secondParameterOne", name = "first parameter for condition two?", description = "first parameter for second condition?", position = 0, section = secondConditionCategories)
+    @ConfigItem(keyName = "secondConditionInvert", name = "invert condition two?", description = "invert the condition so you can check for false", position = 0, section = secondConditionCategories)
+    default boolean secondConditionInvert() { return false; }
+    @ConfigItem(keyName = "secondParameterOne", name = "first parameter for condition two?", description = "first parameter for second condition?", position = 1, section = secondConditionCategories)
     default String secondConditionParameterOne() { return ""; }
-    @ConfigItem(keyName = "secondParameterTwo", name = "second parameter for condition two?", description = "second parameter for second condition?", position = 1, section = secondConditionCategories)
+    @ConfigItem(keyName = "secondParameterTwo", name = "second parameter for condition two?", description = "second parameter for second condition?", position = 2, section = secondConditionCategories)
     default String secondConditionParameterTwo() { return ""; }
-    @ConfigItem(keyName = "secondCRs2Inventory", name = "condition for second", description = "What should the condition be for hotkey 1?", position = 3, section = secondConditionCategories)
+    @ConfigItem(keyName = "secondCRs2Inventory", name = "condition for secondCRs2Inventory", description = "What should the condition be for hotkey 2?", position = 3, section = secondConditionCategories)
     default cRs2Inventory secondCRs2Inventory() { return cRs2Inventory.HAS_ITEM; }
-    @ConfigItem(keyName = "secondCNone", name = "condition for secondCNone", description = "What should the condition be for hotkey 1?", position = 3, section = secondConditionCategories)
+    @ConfigItem(keyName = "secondCNone", name = "condition for secondCNone", description = "What should the condition be for hotkey 2?", position = 3, section = secondConditionCategories)
     default cNone secondCNone() { return cNone.NONE; }
+    @ConfigItem(keyName = "secondCRs2Player", name = "condition for secondCRs2Player", description = "What should the condition be for hotkey 2?", position = 3, section = secondConditionCategories)
+    default cRs2Player secondCRs2Player() { return cRs2Player.IS_MOVING; }
     @ConfigItem(keyName = "secondCOther", name = "condition for second", description = "What should the condition be for hotkey 2?", position = 3, section = secondConditionCategories)
     default cOther secondCOther() { return cOther.NONE; }
 

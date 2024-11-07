@@ -1,5 +1,6 @@
 package net.runelite.client.plugins.microbot.storm.plugins.actionHotkey;
 
+import net.runelite.api.Point;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.config.Config;
 import net.runelite.client.plugins.microbot.Microbot;
@@ -205,9 +206,11 @@ public class actionHotkeyScript extends Script {
     public boolean firstConditional() {
             switch (config.firstConditionCategoryName()) {
                 case NONE:
-                    return handleCommonCondition(config.firstCNone(), config.firstConditionParameterOne(), config.firstConditionParameterTwo());
+                    return true;
                 case RS2INVENTORY:
-                    return handleCommonCondition(config.firstCRs2Inventory(), config.firstConditionParameterOne(), config.firstConditionParameterTwo());
+                    return handleCommonCondition(config.firstCRs2Inventory(), config.firstConditionInvert(), config.firstConditionParameterOne(), config.firstConditionParameterTwo());
+                case RS2PLAYER:
+                    return handleCommonCondition(config.firstCRs2Player(), config.firstConditionInvert(), config.firstConditionParameterOne(), config.firstConditionParameterTwo());
                 default:
                     String currentCategory = config.firstConditionCategoryName().getAction();
                     if(key1isdown){key1isdown=false;} else {key2isdown=false;}
@@ -224,9 +227,11 @@ public class actionHotkeyScript extends Script {
     public boolean secondConditional() {
         switch (config.secondConditionCategoryName()) {
             case NONE:
-                return handleCommonCondition(config.secondCNone(), config.secondConditionParameterOne(), config.secondConditionParameterTwo());
-            case RS2INVENTORY:
-                return handleCommonCondition(config.secondCRs2Inventory(), config.secondConditionParameterOne(), config.secondConditionParameterTwo());
+                return true;
+            case RS2INVENTORY:Rs2Inventory.waitForInventoryChanges()
+                return handleCommonCondition(config.secondCRs2Inventory(), config.secondConditionInvert(), config.secondConditionParameterOne(), config.secondConditionParameterTwo());
+            case RS2PLAYER:
+                return handleCommonCondition(config.secondCRs2Player(), config.secondConditionInvert(), config.secondConditionParameterOne(), config.secondConditionParameterTwo());
             default:
                 String currentCategory = config.secondConditionCategoryName().getAction();
                 if(key1isdown){key1isdown=false;} else {key2isdown=false;}
@@ -427,6 +432,13 @@ public class actionHotkeyScript extends Script {
                         case WALK_FAST_CANVAS:
                             Rs2Walker.walkFastCanvas(new WorldPoint(ID, value, Rs2Player.getWorldLocation().getPlane()));
                     }
+                } else if (action instanceof aOther) {
+                    switch ((aOther) action) {
+                        case CLICK:
+                            System.out.println("Microbot.getMouse().click(new Point("+ID+", "+value+"));");
+                            Microbot.getMouse().click(new Point(ID, value));
+                            break;
+                    }
                 }
             }
         }
@@ -464,17 +476,24 @@ public class actionHotkeyScript extends Script {
         }
     }
     public boolean condition(Actionable action){
+        System.out.println(action+"();");
         if (this.isRunning()) {
             if(action instanceof cNone) {
                 switch ((cNone) action) {
                     case NONE:
                         return true;
                 }
+            } else if (action instanceof cRs2Player) {
+                switch ((cRs2Player) action) {
+                    case IS_MOVING:
+                        return Rs2Player.isMoving();
+                }
             }
         }
         return false;
     }
-    public boolean condition(Actionable action, int ID){
+    public boolean condition(Actionable action, int id){
+        System.out.println(action+"(int "+id+");");
         if (this.isRunning()) {
             if(action instanceof cNone) {
                 switch ((cNone) action) {
@@ -484,12 +503,13 @@ public class actionHotkeyScript extends Script {
             } else if (action instanceof cRs2Inventory)
                 switch ((cRs2Inventory) action) {
                     case HAS_ITEM:
-                        return Rs2Inventory.hasItem(ID);
+                        return Rs2Inventory.hasItem(id);
                 }
         }
         return false;
     }
     public boolean condition(Actionable action, String name){
+        System.out.println(action+"(String "+name+");");
         if (this.isRunning()) {
             if(action instanceof cNone) {
                 switch ((cNone) action) {
@@ -504,7 +524,8 @@ public class actionHotkeyScript extends Script {
         }
         return false;
     }
-    public boolean condition(Actionable action, int ID, String name){
+    public boolean condition(Actionable action, int id, String name){
+        System.out.println(action+"(int "+id+", String "+name+");");
         if (this.isRunning()) {
             if(action instanceof cNone) {
                 switch ((cNone) action) {
@@ -516,6 +537,7 @@ public class actionHotkeyScript extends Script {
         return false;
     }
     public boolean condition(Actionable action, String name, int value){
+        System.out.println(action+"(String "+name+", int "+value+");");
         if (this.isRunning()) {
             if(action instanceof cNone) {
                 switch ((cNone) action) {
@@ -527,6 +549,7 @@ public class actionHotkeyScript extends Script {
         return false;
     }
     public boolean condition(Actionable action, int ID, int value){
+        System.out.println(action+"(int "+ID+", int "+value+");");
         if (this.isRunning()) {
             if(action instanceof cNone) {
                 switch ((cNone) action) {
@@ -537,7 +560,8 @@ public class actionHotkeyScript extends Script {
         }
         return false;
     }
-    public boolean condition(Actionable action, String name, String ID){
+    public boolean condition(Actionable action, String name, String menu){
+        System.out.println(action+"(String "+name+", String "+menu+");");
         if (this.isRunning()) {
             if(action instanceof cNone) {
                 switch ((cNone) action) {
@@ -565,6 +589,7 @@ public class actionHotkeyScript extends Script {
         if (parameterOne.isEmpty()) {
             if (parameterTwo.isEmpty()) {
                 action(actionCategory);//(empty, empty)
+                System.out.println(actionCategory+"();");
             } else if (isP2Numeric) {//(empty, int)
                 firstEmpty(actionCategory,"int");
             } else {//(empty, String)
@@ -574,28 +599,35 @@ public class actionHotkeyScript extends Script {
             if (parameterTwo.isEmpty()) {
                 if (isP1Numeric) {
                     action(actionCategory, Integer.parseInt(parameterOne));//(int, empty)
+                    System.out.println(actionCategory+"(int "+parameterOne+");");
                 } else {
                     action(actionCategory, parameterOne);//(String, empty)
+                    System.out.println(actionCategory+"(String "+parameterOne+");");
                 }
             } else {
                 if (isP1Numeric && isP2Numeric) {
                     action(actionCategory, Integer.parseInt(parameterOne), Integer.parseInt(parameterTwo));//(int, int)
+                    System.out.println(actionCategory+"(int "+parameterOne+", int "+parameterTwo+");");
                 } else if (isP1Numeric) {
                     action(actionCategory, Integer.parseInt(parameterOne), parameterTwo);//(int, String)
+                    System.out.println(actionCategory+"(int "+parameterOne+", String "+parameterTwo+");");
                 } else if (isP2Numeric) {
                     action(actionCategory, parameterOne, Integer.parseInt(parameterTwo));//(String, int)
+                    System.out.println(actionCategory+"(String "+parameterOne+", int "+parameterTwo+");");
                 } else {
                     action(actionCategory, parameterOne, parameterTwo);//(String, String)
+                    System.out.println(actionCategory+"(String "+parameterOne+", String "+parameterTwo+");");
                 }
             }
         }
     }
-    boolean handleCommonCondition(Actionable condition, String parameterOne, String parameterTwo){
+    boolean handleCommonCondition(Actionable condition, boolean invert, String parameterOne, String parameterTwo){
         boolean isP1Numeric = Pattern.compile("[0-9]+").matcher(parameterOne).matches();
         boolean isP2Numeric = Pattern.compile("[0-9]+").matcher(parameterTwo).matches();
         if (parameterOne.isEmpty()) {
             if (parameterTwo.isEmpty()) {
-                condition(condition);//(empty, empty)
+                if (invert) { return !condition(condition); }
+                else { return condition(condition); }
             } else if (isP2Numeric) {//(empty, int)
                 firstEmpty(condition,"int");
             } else {//(empty, String)
@@ -604,19 +636,25 @@ public class actionHotkeyScript extends Script {
         } else {
             if (parameterTwo.isEmpty()) {
                 if (isP1Numeric) {
-                    return condition(condition, Integer.parseInt(parameterOne));//(int, empty)
+                    if (invert) { return !condition(condition, Integer.parseInt(parameterOne)); }//(int, empty)
+                    else { return condition(condition, Integer.parseInt(parameterOne)); }
                 } else {
-                    return condition(condition, parameterOne);//(String, empty)
+                    if (invert) { return !condition(condition, parameterOne);  }
+                    else { return condition(condition, parameterOne); }//(String, empty)
                 }
             } else {
                 if (isP1Numeric && isP2Numeric) {
-                    return condition(condition, Integer.parseInt(parameterOne), Integer.parseInt(parameterTwo));//(int, int)
+                    if (invert) { return !condition(condition, Integer.parseInt(parameterOne), Integer.parseInt(parameterTwo)); }
+                    else { return condition(condition, Integer.parseInt(parameterOne), Integer.parseInt(parameterTwo)); }//(int, int)
                 } else if (isP1Numeric) {
-                    return condition(condition, Integer.parseInt(parameterOne), parameterTwo);//(int, String)
+                    if (invert) { return !condition(condition, Integer.parseInt(parameterOne), parameterTwo);  }
+                    else { return condition(condition, Integer.parseInt(parameterOne), parameterTwo); }//(int, String)
                 } else if (isP2Numeric) {
-                    return condition(condition, parameterOne, Integer.parseInt(parameterTwo));//(String, int)
+                    if (invert) { return !condition(condition, parameterOne, Integer.parseInt(parameterTwo)); }
+                    else { return condition(condition, parameterOne, Integer.parseInt(parameterTwo)); }//(String, int)
                 } else {
-                    return condition(condition, parameterOne, parameterTwo);//(String, String)
+                    if (invert) { return !condition(condition, parameterOne, parameterTwo); }
+                    else { return condition(condition, parameterOne, parameterTwo); }//(String, String)
                 }
             }
         }

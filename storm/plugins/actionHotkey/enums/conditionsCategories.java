@@ -2,6 +2,7 @@ package net.runelite.client.plugins.microbot.storm.plugins.actionHotkey.enums;
 
 public enum conditionsCategories implements Actionable {
     RS2INVENTORY("Rs2Inventory"),
+    RS2PLAYER("Rs2Player"),
     COTHER("COther"),
     NONE("none");
 
