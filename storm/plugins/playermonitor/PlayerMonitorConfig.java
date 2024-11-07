@@ -1,13 +1,16 @@
-package net.runelite.client.plugins.microbot.storm.plugins.playermonitor;
+package net.runelite.client.plugins.microbot.storm.plugins.PlayerMonitor;
 
 import net.runelite.client.config.*;
-import net.runelite.client.plugins.microbot.storm.plugins.playermonitor.enums.SoundEffectID;
-import net.runelite.client.plugins.microbot.storm.plugins.playermonitor.enums.emergencyOptions;
+import net.runelite.client.plugins.microbot.storm.plugins.PlayerMonitor.enums.SoundEffectID;
+import net.runelite.client.plugins.microbot.storm.plugins.PlayerMonitor.enums.emergencyOptions;
 
 import java.awt.*;
  
 
  @ConfigGroup("PlayerMonitor")
+ @ConfigInformation("Use middle mouse click to <br />" +
+         "turn off mouse alarm <br />" +
+         "and reset counter.")
  public interface PlayerMonitorConfig
    extends Config
  {

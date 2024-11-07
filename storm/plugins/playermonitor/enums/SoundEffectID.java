@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.microbot.storm.plugins.playermonitor.enums;
+package net.runelite.client.plugins.microbot.storm.plugins.PlayerMonitor.enums;
 
 public enum SoundEffectID {
     UI_BOOP(2266),

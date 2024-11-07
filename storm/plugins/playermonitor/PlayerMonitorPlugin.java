@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.microbot.storm.plugins.playermonitor;
+package net.runelite.client.plugins.microbot.storm.plugins.PlayerMonitor;
 
 import com.google.inject.Provides;
 import lombok.Getter;
@@ -61,11 +61,11 @@ import java.util.stream.Collectors;
    @Inject
    private MouseManager mouseManager;
    private MouseListener mouseListener;
-   private int leftClickCounter;
+   static int leftClickCounter;
 
-   private final File CLICK_TOTAL_DIR = new File(RuneLite.RUNELITE_DIR, "PlayerMonitor");
+   private static final File CLICK_TOTAL_DIR = new File(RuneLite.RUNELITE_DIR, "PlayerMonitor");
 
-   private final File CLICK_TOTAL_FILE = new File(this.CLICK_TOTAL_DIR, "click_count.log");
+   private static final File CLICK_TOTAL_FILE = new File(CLICK_TOTAL_DIR, "click_count.log");
 
    private long previousClickTime;
 
@@ -168,8 +168,8 @@ import java.util.stream.Collectors;
            Microbot.getClientThread().invokeLater(() -> Microbot.getClient().playSoundEffect(config.clickSoundID().getId(), 127));
          }
        }
-       this.leftClickCounter++;
-       if (this.leftClickCounter % 50 == 0)
+       leftClickCounter++;
+       if (leftClickCounter % 50 == 0)
          try {
            saveMouseClicks();
          } catch (IOException e) {
@@ -190,33 +190,33 @@ import java.util.stream.Collectors;
        return this.index;
      }
    }
-   public int getLeftClickCounter() {
-     return this.leftClickCounter;
+   public static int getLeftClickCounter() {
+     return leftClickCounter;
    }
-   public void resetMouseClickCounterListener() {
-    this.leftClickCounter = 0;
+   public static void resetMouseClickCounterListener() {
+    leftClickCounter = 0;
     try {
       saveMouseClicks();
     } catch (IOException e) {
       e.printStackTrace();
     }
   }
-   public void saveMouseClicks() throws IOException {
-    if (!this.CLICK_TOTAL_FILE.exists())
+   public static void saveMouseClicks() throws IOException {
+    if (!CLICK_TOTAL_FILE.exists())
       try {
-        if (!this.CLICK_TOTAL_FILE.createNewFile())
+        if (!CLICK_TOTAL_FILE.createNewFile())
           System.out.println("Failed to create log file");
       } catch (IOException e) {
         e.printStackTrace();
       }
-    FileWriter writer = new FileWriter(this.CLICK_TOTAL_FILE);
+    FileWriter writer = new FileWriter(CLICK_TOTAL_FILE);
     Integer[] totals = { Integer.valueOf(getLeftClickCounter()) };
     writer.write("" + totals[FILE_CLICK_TYPE_INDICES.LEFT.getValue()] + " ");
     writer.close();
   }
    public void loadMouseClicks() throws FileNotFoundException {
-    if (!this.CLICK_TOTAL_DIR.mkdir() && this.CLICK_TOTAL_FILE.exists()) {
-      Scanner scanner = new Scanner(this.CLICK_TOTAL_FILE);
+    if (!this.CLICK_TOTAL_DIR.mkdir() && CLICK_TOTAL_FILE.exists()) {
+      Scanner scanner = new Scanner(CLICK_TOTAL_FILE);
       int[] totals = new int[1]; // Only one entry for left-clicks
       int ii = 0;
       while (scanner.hasNextInt()) {
@@ -229,8 +229,8 @@ import java.util.stream.Collectors;
       }
     } else {
       try {
-        if (this.CLICK_TOTAL_FILE.createNewFile()) {
-          this.leftClickCounter = 0; // Initialize to 0 for new file
+        if (CLICK_TOTAL_FILE.createNewFile()) {
+          leftClickCounter = 0; // Initialize to 0 for new file
         } else {
           System.out.println("Failed to create log file");
         }

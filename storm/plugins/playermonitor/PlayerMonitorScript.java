@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.microbot.storm.plugins.playermonitor;
+package net.runelite.client.plugins.microbot.storm.plugins.PlayerMonitor;
 
 import net.runelite.api.Varbits;
 import net.runelite.api.coords.WorldPoint;
@@ -41,6 +41,8 @@ public class PlayerMonitorScript extends Script {
         flashOverlay.setFlashColor(offColor);
         overlayManager.add(flashOverlay);
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
+            if (!super.run()) return;
+            if (!Microbot.isLoggedIn()) return;
             try {
                 if (Microbot.getClient().getGameCycle() % 20 >= 10) {
                     if(!playAlarm) {

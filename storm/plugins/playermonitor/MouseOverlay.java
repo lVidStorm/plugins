@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.microbot.storm.plugins.playermonitor;
+package net.runelite.client.plugins.microbot.storm.plugins.PlayerMonitor;
 
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.components.LineComponent;
@@ -25,7 +25,7 @@ public class MouseOverlay extends OverlayPanel {
         this.panelComponent.setPreferredSize(new Dimension(getSize(graphics) + 15, 0));
         if (!config.hideClickCounter()) {
             this.panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Left Clicks: ")
+                    .left("Clicks: ")
                     .right("" + this.plugin.getLeftClickCounter())
                     .build());
         }
@@ -35,7 +35,7 @@ public class MouseOverlay extends OverlayPanel {
         int configSize = 0;
         ArrayList<Integer> currentSelections = new ArrayList<>();
         if (!this.config.hideClickCounter()) {
-            String leftString = "Left: " + this.plugin.getLeftClickCounter();
+            String leftString = "Clicks: " + this.plugin.getLeftClickCounter();
             int leftSize = graphics.getFontMetrics().stringWidth(leftString);
             configSize = Math.max(configSize, leftSize);
             currentSelections.add(Integer.valueOf(1));

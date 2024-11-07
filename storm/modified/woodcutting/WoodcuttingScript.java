@@ -55,6 +55,7 @@ public class WoodcuttingScript extends Script {
         if (config.shouldUseAntiban()) { Rs2AntibanSettings.dynamicActivity = true; }
         if (config.shouldUseAntiban()) { Rs2AntibanSettings.dynamicIntensity = true; }
         initialPlayerLocation = null;
+        returnPoint=null;
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try {
                 if (!Microbot.isLoggedIn()) return;
@@ -71,12 +72,10 @@ public class WoodcuttingScript extends Script {
                     shutdown();
                     return;
                 }
-                //TODO update this so we also check for new highest player count trees~
-                //TODO this needs to be changed so that it will continue if we aren't chopping the best tree
                 if (((config.shouldGroup() && isPlayerChoppingBestTree(config)) || !config.shouldGroup())
                         && (Rs2Player.isMoving() || Rs2Player.isInteracting() || Rs2Player.isAnimating() || Microbot.pauseAllScripts || (Rs2AntibanSettings.actionCooldownActive && config.shouldUseAntiban()))) {
                     return;
-                }//TODO track how often this happens FUCK
+                }//TODO implement new logic to find stack of players next to best tree
                 if (config.crowd() && Microbot.getClient().getPlayers().stream()
                         .filter(player -> player.getWorldLocation().equals(Rs2Player.getWorldLocation()))
                         .count() < config.crowdTile() ) {
@@ -86,7 +85,6 @@ public class WoodcuttingScript extends Script {
                         sleepUntil(Rs2Player::isMoving,655);
                         sleepUntil(()-> !Rs2Player.isMoving());
                         sleep(100,400);
-                        returnPoint=Rs2Player.getWorldLocation();
                         return;
                     } else {
                         crowdStopOccurances++;
@@ -125,11 +123,7 @@ public class WoodcuttingScript extends Script {
                             state = State.RESETTING;
                             return;
                         }
-                        //TODO changing this~
-                        //GameObject tree = Rs2GameObject.findObject(config.TREE().getName(), true, config.distanceToStray(), false, getInitialPlayerLocation());
-                        //TODO Retrieve all nearby game objects
                         GameObject selectedTree = getBestTree(config);
-                        //TODO
                         if (selectedTree != null) {
                             if (Rs2GameObject.interact(selectedTree, config.TREE().getAction())) {
                                 Rs2Player.waitForAnimation();

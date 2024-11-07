@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.microbot.storm.plugins.playermonitor;
+package net.runelite.client.plugins.microbot.storm.plugins.PlayerMonitor;
 
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
@@ -19,6 +19,7 @@ public class MouseListener extends MouseAdapter {
     if (this.client.getGameState() == GameState.LOGGED_IN) {
       if(SwingUtilities.isMiddleMouseButton(event)) {
         if (PlayerMonitorPlugin.mouseAlarm) { PlayerMonitorPlugin.mouseAlarm=false; }
+        PlayerMonitorPlugin.resetMouseClickCounterListener();
       }
     } 
     return event;
