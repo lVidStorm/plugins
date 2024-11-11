@@ -228,7 +228,7 @@ public class actionHotkeyScript extends Script {
         switch (config.secondConditionCategoryName()) {
             case NONE:
                 return true;
-            case RS2INVENTORY:Rs2Inventory.waitForInventoryChanges()
+            case RS2INVENTORY:
                 return handleCommonCondition(config.secondCRs2Inventory(), config.secondConditionInvert(), config.secondConditionParameterOne(), config.secondConditionParameterTwo());
             case RS2PLAYER:
                 return handleCommonCondition(config.secondCRs2Player(), config.secondConditionInvert(), config.secondConditionParameterOne(), config.secondConditionParameterTwo());
