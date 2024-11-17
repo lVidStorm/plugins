@@ -303,7 +303,13 @@ public class blastofurnaceScript extends Script {
         //TODO something wrong here, furnace doesn't update for too long and the player skips
         if (calculateBars(config.getBars().getBarID())==0) {
             //TODO change this so that gold still works
-            if (Microbot.getVarbitValue(config.getBars().getBFPrimaryOreID()) > 0 && Microbot.getVarbitValue(Varbits.BLAST_FURNACE_COAL) > 0) {
+            if (Microbot.getVarbitValue(config.getBars().getBFPrimaryOreID()) > 0) {
+                if (config.getBars().getBarID()==Bars.STEEL_BAR.getBarID()
+                || config.getBars().getBarID()==Bars.MITHRIL_BAR.getBarID()
+                || config.getBars().getBarID()==Bars.ADAMANTITE_BAR.getBarID()
+                || config.getBars().getBarID()==Bars.RUNITE_BAR.getBarID()) {
+                    if (Microbot.getVarbitValue(Varbits.BLAST_FURNACE_COAL) == 0) { return; }
+                    }
                 sleepUntil(() -> calculateBars(config.getBars().getBarID()) > 0, 10000);
                 if (calculateBars(config.getBars().getBarID()) == 0) return;
             }
@@ -427,10 +433,12 @@ public class blastofurnaceScript extends Script {
             }
             if(config.getBars()==Bars.RUNITE_BAR){
                 actions(invInteract, COAL_BAG_12019, "empty");
-                if(this.isRunning()) { boolean c = sleepUntilTrue(()->coalBagEmpty, 100, 5000); System.out.println("empty coal bag? : "+c); }
+                //if(this.isRunning()) { boolean c = sleepUntilTrue(()->coalBagEmpty, 100, 5000); System.out.println("empty coal bag? : "+c); }
+                if (this.isRunning()) { Rs2Inventory.waitForInventoryChanges(650); }
                 customSleep("moderate");
                 actions(interact, 9100);
-                if(this.isRunning()) { boolean i = sleepUntilTrue(()-> secondaryOreEmpty, 100,17000); System.out.println("sent coal? : "+i); }
+                if (this.isRunning()) { Rs2Inventory.waitForInventoryChanges(650); }
+                //if(this.isRunning()) { boolean i = sleepUntilTrue(()-> secondaryOreEmpty, 100,17000); System.out.println("sent coal? : "+i); }
                 customSleep("moderate");
                 //TODO don't like this redundancy check, need to ultimately solve why above fails. why is secondaryOreEmpty already true?
                 //TODO maybe change it so it checks if the inventory still has coal after another wait before clicking again?
@@ -440,7 +448,8 @@ public class blastofurnaceScript extends Script {
                     final Stopwatch watch = Stopwatch.createStarted();
                     while(this.isRunning() && Rs2Inventory.hasItem(COAL) && watch.elapsed(TimeUnit.MILLISECONDS)<random(5000,7000)){
                         actions(interact, 9100);
-                        if(this.isRunning()) { boolean a = sleepUntilTrue(() -> secondaryOreEmpty, 100, 17000); System.out.println("sent coal? : "+a); }
+                        if (this.isRunning()) { Rs2Inventory.waitForInventoryChanges(650); }
+                        //if(this.isRunning()) { boolean a = sleepUntilTrue(() -> secondaryOreEmpty, 100, 17000); System.out.println("sent coal? : "+a); }
                         customSleep("moderate");
                     }
                 }
@@ -506,18 +515,21 @@ public class blastofurnaceScript extends Script {
         System.out.println("secondary? : "+secondaryOreEmpty);
         actions(withdrawAll, config.getBars().getSecondaryOre());
         System.out.println("withdrawing coal");
-        if(this.isRunning()) { sleepUntil(()->!secondaryOreEmpty); }
+        if (this.isRunning()) { Rs2Inventory.waitForInventoryChanges(650); }
+        //if(this.isRunning()) { sleepUntil(()->!secondaryOreEmpty); }
         System.out.println("done withdrawing coal");
         //if(this.isRunning()) { sleepUntil(()->Rs2Inventory.hasItem(ItemID.COAL)); }
     }
     private void oneEach(){
         actions(withdrawAll, config.getBars().getPrimaryOre());
-        if(this.isRunning()) { sleepUntil(()->!primaryOreEmpty); }
+        if (this.isRunning()) { Rs2Inventory.waitForInventoryChanges(650); }
+        //if(this.isRunning()) { sleepUntil(()->!primaryOreEmpty); }
         //if(this.isRunning()) { sleepUntil(()->Rs2Inventory.hasItem(config.getBars().getPrimaryOre())); }
     }
     private void onlyCoal(){
         actions(withdrawAll, config.getBars().getSecondaryOre());
-        if(this.isRunning()) { sleepUntil(()->Rs2Inventory.hasItem(config.getBars().getSecondaryOre())); }
+        if (this.isRunning()) { Rs2Inventory.waitForInventoryChanges(650); }
+        //if(this.isRunning()) { sleepUntil(()->Rs2Inventory.hasItem(config.getBars().getSecondaryOre())); }
         //customSleep("moderate");
     }
     private boolean hasItems() {
