@@ -352,6 +352,7 @@ public class blastofurnaceScript extends Script {
         if(primaryOreEmpty){System.out.println("Something went wrong with banking detection, primary is empty when it shouldn't be."); primaryOreEmpty=false; }
         //List<Rs2Item> previousInventory = Rs2Inventory.all();
         actions(interact, 9100);//TODO FUCK detect primary ore gone
+        //TODO fuckers, doesn't have sleep between checks causing bug.
         if (this.isRunning()) { sleepUntil(() -> Rs2Player.getWorldLocation().getX() < 1939, 20000); }
         if (this.isRunning()) { sleepUntil(() -> Rs2Player.getWorldLocation().getX() > 1941, 20000); }
         if (this.isRunning()) { Rs2Inventory.waitForInventoryChanges(5000); }

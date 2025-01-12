@@ -13,7 +13,7 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.microbot.Microbot;
-import net.runelite.client.plugins.microbot.storm.modified.slayer.ui.panels.BanksSlayerPluginPanel;
+import net.runelite.client.plugins.microbot.storm.modified.slayer.ui.panels.SlayerPluginPanel;
 import net.runelite.client.plugins.microbot.util.combat.Rs2Combat;
 import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
 import net.runelite.client.plugins.microbot.util.prayer.Rs2Prayer;
@@ -68,7 +68,7 @@ public class SlayerPlugin extends Plugin {
     private ClientToolbar clientToolbar;
 
     @Inject
-    private Provider<BanksSlayerPluginPanel> uiPanel;
+    private Provider<SlayerPluginPanel> uiPanel;
 
     private NavigationButton uiNavigationButton;
 
@@ -88,7 +88,7 @@ public class SlayerPlugin extends Plugin {
         final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/skill_icons/slayer.png");
 
         uiNavigationButton = NavigationButton.builder()
-                .tooltip("Banks AIO Slayer")
+                .tooltip("AIO Slayer")
                 .icon(icon)
                 .priority(10)
                 .panel(uiPanel.get())

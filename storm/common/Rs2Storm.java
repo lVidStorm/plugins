@@ -8,7 +8,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 public class Rs2Storm {
-    //TODO should have it avoid selecting the first item unless total in inventory is less than max tries
     private static Set<Integer> recentItems = new HashSet<>();
 
 

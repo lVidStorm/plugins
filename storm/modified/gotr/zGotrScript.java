@@ -11,13 +11,15 @@ import net.runelite.client.plugins.microbot.storm.modified.gotr.data.CellType;
 import net.runelite.client.plugins.microbot.storm.modified.gotr.data.GuardianPortalInfo;
 import net.runelite.client.plugins.microbot.storm.modified.gotr.data.Mode;
 import net.runelite.client.plugins.microbot.storm.modified.gotr.data.RuneType;
+import net.runelite.client.plugins.microbot.util.Global;
 import net.runelite.client.plugins.microbot.util.combat.Rs2Combat;
+import net.runelite.client.plugins.microbot.util.dialogues.Rs2Dialogue;
 import net.runelite.client.plugins.microbot.util.equipment.Rs2Equipment;
 import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Item;
 import net.runelite.client.plugins.microbot.util.magic.Rs2Magic;
-import net.runelite.client.plugins.microbot.util.math.Random;
+import net.runelite.client.plugins.microbot.util.math.Rs2Random;
 import net.runelite.client.plugins.microbot.util.npc.Rs2Npc;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
 import net.runelite.client.plugins.microbot.util.walker.Rs2Walker;
@@ -34,23 +36,23 @@ import java.util.stream.Collectors;
 import static net.runelite.client.plugins.microbot.Microbot.log;
 import static net.runelite.client.plugins.microbot.util.Global.sleepGaussian;
 import static net.runelite.client.plugins.microbot.util.Global.sleepUntilTrue;
-import static net.runelite.client.plugins.microbot.util.math.Random.random;
-import static net.runelite.client.plugins.microbot.util.math.Random.randomGaussian;
 
 
 public class zGotrScript extends Script {
 
-    public static String version = "1.1.3";
+    public static String version = "1.2.1";
     public static long totalTime = 0;
     public static boolean shouldMineGuardianRemains = true;
     public static final String rewardPointRegex = "Total elemental energy:[^>]+>([\\d,]+).*Total catalytic energy:[^>]+>([\\d,]+).";
     public static final Pattern rewardPointPattern = Pattern.compile(rewardPointRegex);
 
     public static boolean isInMiniGame = false;
+    public static boolean isFirstPortal = true;
     public static final int portalId = ObjectID.PORTAL_43729;
     public static final int greatGuardianId = 11403;
     public static final Map<Integer, GuardianPortalInfo> guardianPortalInfo = new HashMap<>();
     public static Optional<Instant> nextGameStart = Optional.empty();
+    public static Optional<Instant> timeSincePortal = Optional.empty();
     public static final Set<GameObject> guardians = new HashSet<>();
     public static final List<GameObject> activeGuardianPortals = new ArrayList<>();
     public static NPC greatGuardian;
@@ -59,11 +61,14 @@ public class zGotrScript extends Script {
     public static zGotrState state;
     public static zGotrState previousState;
     public static int unchrgcellrandom;
+    public static int fragmentnum;
     static zGotrConfig config;
     String GUARDIAN_FRAGMENTS = "guardian fragments";
     String GUARDIAN_ESSENCE = "guardian essence";
 
     boolean initCheck = false;
+
+    static boolean useNpcContact = true;
     private final List<Integer> runeIds = ImmutableList.of(
             ItemID.NATURE_RUNE,
             ItemID.LAW_RUNE,
@@ -104,7 +109,8 @@ public class zGotrScript extends Script {
 
     public boolean run(zGotrConfig config) {
         this.config = config;
-        unchrgcellrandom = random(2,10);
+        unchrgcellrandom = Rs2Random.between(2,10);
+        fragmentnum = Rs2Random.between(10,22);
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try {
                 if (!Microbot.isLoggedIn()) return;
@@ -113,6 +119,10 @@ public class zGotrScript extends Script {
 
                 if (!initCheck) {
                     initializeGuardianPortalInfo();
+                    if (!Rs2Magic.isLunar()) {
+                        Microbot.log("Lunar spellbook not found...disabling npc contact");
+                        useNpcContact = false;
+                    }
                     initCheck = true;
                 }
 
@@ -133,6 +143,7 @@ public class zGotrScript extends Script {
 
                 if (Rs2Inventory.hasItem("portal talisman")) {
                     Rs2Inventory.drop("portal talisman");
+                    Rs2Inventory.waitForInventoryChanges(5000);
                     log("Dropping portal talisman...");
                 }
                 //Repair colossal pouch asap to avoid disintegrate completely
@@ -159,8 +170,8 @@ public class zGotrScript extends Script {
                     if (mineHugeGuardianRemain()) return;
                     //deposit runes
                     if (depositRunesIntoPool()) return;
-
-                    if (!shouldMineGuardianRemains) {
+                    //TODO @@@@@
+                    if (!shouldMineGuardianRemains) {//this declares we no longer need to be in the mine,
                         //Create fragments into whatever
                         if (isOutOfFragments()) return;
 
@@ -168,20 +179,31 @@ public class zGotrScript extends Script {
                             craftGuardianEssences();
                             return;
                         }
-                        if (!Rs2Inventory.isFull()) {
-                            if (leaveLargeMine()) return;
+                        if (!Rs2Inventory.isFull()) {//TODO
 
+                            if (leaveLargeMine()) { int i = 0;
+                                while (i<5) {
+                                    System.out.println("//so when we get to this it should be pushing us to leave the mine.");
+                                    i++;
+                                }
+                            return; }//so when we get to this it should be pushing us to leave the mine.
                             if (state == zGotrState.CRAFT_GUARDIAN_ESSENCE && (Rs2Player.isAnimating() || Rs2Player.isWalking())) return;
 
-                            if (craftGuardianEssences()) return;
+                            if (craftGuardianEssences()) return;//and if our method returns false for not leaving, then we get to this method that forces us to click on things we can't get to
 
                         } else if (Rs2Inventory.hasItem(GUARDIAN_ESSENCE)) {
-                            if (leaveLargeMine()) return;
+
+                            if (leaveLargeMine()) { int i = 0;
+                                while (i<5) {
+                                    System.out.println("//nothing");
+                                    i++;
+                                }
+                            return; }//nothing
                             if (enterAltar()) return;
                         }
                     } else {
                         if (getGuardiansPower() > 70) {
-                            if (Rs2Inventory.hasItemAmount(GUARDIAN_FRAGMENTS, random(25, 35))) {
+                            if (Rs2Inventory.hasItemAmount(GUARDIAN_FRAGMENTS, Rs2Random.between(25, 35))) {
                                 shouldMineGuardianRemains = false;
                             }
                         } else {
@@ -217,9 +239,32 @@ public class zGotrScript extends Script {
     }
 
     private boolean waitingForGameToStart(int timeToStart) {
-        if (getStartTimer() > randomGaussian(random(20, 30), random(1, 5)) || getStartTimer() == -1 || timeToStart > 10) {
+        if (isInHugeMine()) return false;
 
-            takeUnchargedCells();
+        if (getStartTimer() > Rs2Random.randomGaussian(35, Rs2Random.between(1, 5)) || getStartTimer() == -1 || timeToStart > 10) {
+
+            // Only take cells if we don't already have them
+            if (!Rs2Inventory.hasItemAmount("Uncharged cell", unchrgcellrandom)) {
+                //TODO our leave/enter loop might actually be caused by this
+                // If in large mine and need cells, leave first
+                if (isInLargeMine()) {
+                    if (leaveLargeMine()) { int i = 0;
+                        while (i<5) {
+                            System.out.println("//TODO our leave/enter loop might actually be caused by this \"takeUnchargedCells()");
+                            i++;
+                        }
+                    return true; }//TODO our leave/enter loop might actually be caused by this "takeUnchargedCells()"
+                }
+                takeUnchargedCells();
+                // Return to large mine if we were there before
+                if (!isInLargeMine() && shouldMineGuardianRemains) {
+                    if (Rs2Walker.walkTo(new WorldPoint(3632, 9503, 0), 20)) {
+                        Rs2GameObject.interact(ObjectID.RUBBLE_43724);
+                        return true;
+                    }
+                }
+            }
+
             repairPouches();
 
             if (!shouldMineGuardianRemains) return true;
@@ -252,7 +297,7 @@ public class zGotrScript extends Script {
             int interactedObjectId = Rs2GameObject.interact(shieldCellIds);
             if (interactedObjectId != -1) {
                 log("Using cell with id " + interactedObjectId);
-                sleep(randomGaussian(1000, 300));
+                sleep(Rs2Random.randomGaussian(1000, 300));
                 sleepUntil(() -> !Rs2Player.isWalking());
             }
             return true;
@@ -266,21 +311,28 @@ public class zGotrScript extends Script {
             Rs2Npc.interact("The great guardian", "power-up");
             log("Powering up the great guardian...");
             sleepUntil(Rs2Player::isAnimating);
-            sleep(randomGaussian(random(1000, 2000), random(100, 300)));
+            sleep(Rs2Random.randomGaussian(Rs2Random.between(1000, 2000), Rs2Random.between(100, 300)));
             return true;
         }
         return false;
     }
 //TODO adapt this method here~
     private static void takeUnchargedCells() {
-        if (!Rs2Inventory.isFull() && !Rs2Inventory.hasItemAmount("Uncharged cell", unchrgcellrandom) && Rs2Player.getWorldLocation().distanceTo(new WorldPoint(3619, 9488, Rs2Player.getWorldLocation().getPlane()))<10) {
+        if (Rs2Inventory.isFull()) {
+            if (Rs2Inventory.drop(ItemID.GUARDIAN_ESSENCE)) {
+                Microbot.log("Dropped one Guardian essence to make space for Uncharged cell");
+            }
+        }
+        //TODO need to fix this so we grab cells when running past
+        if (!Rs2Inventory.isFull() && !Rs2Inventory.hasItemAmount("Uncharged cell", unchrgcellrandom) /*&& Rs2Player.getWorldLocation().distanceTo(new WorldPoint(3619, 9488, Rs2Player.getWorldLocation().getPlane()))<10*/) {
             Rs2GameObject.interact(ObjectID.UNCHARGED_CELLS_43732, "Take-10");
             log("Taking uncharged cells...");
-            Rs2Player.waitForAnimation();
+            Rs2Inventory.waitForInventoryChanges(5000);
         }
     }
 
-    private static boolean lootChisel() {
+    private boolean lootChisel() {
+        if (isInHugeMine()) return false;
         if (!Rs2Inventory.isFull() && !Rs2Inventory.hasItem("Chisel")) {
             Rs2GameObject.interact("chisel", "take");
             Rs2Player.waitForWalking();
@@ -292,12 +344,19 @@ public class zGotrScript extends Script {
 
     private boolean usePortal() {
         if (!isInHugeMine() && Microbot.getClient().hasHintArrow() && Rs2Inventory.size() < config.maxAmountEssence()) {
-            if (leaveLargeMine()) return true;
+            if (leaveLargeMine()) { int i = 0;
+                while (i<5) {
+                    System.out.println("//useportal method");
+                    i++;
+                }
+            return true; }//useportal method
             Rs2Walker.walkFastCanvas(Microbot.getClient().getHintArrowPoint());
+            sleepUntil(Rs2Player::isWalking);
             Rs2GameObject.interact(Microbot.getClient().getHintArrowPoint());
             log("Found a portal spawn...interacting with it...");
             Rs2Player.waitForWalking();
-            sleep(randomGaussian(random(1000, 2000), random(100, 300)));
+            sleepUntil(() -> isInHugeMine());
+            sleepUntil(() -> getGuardiansPower() > 0);
             return true;
         }
         return false;
@@ -307,8 +366,11 @@ public class zGotrScript extends Script {
         if (Rs2Inventory.hasItem(runeIds.toArray(Integer[]::new)) && !isInLargeMine() && !isInHugeMine() && !Rs2Inventory.isFull()) {
             if (Rs2Player.isWalking()) return true;
             if (Rs2GameObject.interact(ObjectID.DEPOSIT_POOL)) {
+                Rs2Inventory.waitForInventoryChanges(5000);
                 log("Deposit runes into pool...");
-                sleep(600, 2400);
+                sleep(100, 400);
+                //TODO probably the best place to grab more uncharged cells?
+                if (!Rs2Inventory.hasItemAmount("Uncharged cell", unchrgcellrandom)) takeUnchargedCells();
             }
             return true;
         }
@@ -321,7 +383,7 @@ public class zGotrScript extends Script {
             log("Entering with altar " + availableAltar.getId());
             Rs2GameObject.interact(availableAltar);
             sleepUntil(() -> !isInMainRegion(), 5000);
-            sleep(Random.randomGaussian(1000, 300));
+            sleep(Rs2Random.randomGaussian(1000, 300));
             state = zGotrState.ENTER_ALTAR;
             return true;
         }
@@ -331,7 +393,7 @@ public class zGotrScript extends Script {
     private boolean craftGuardianEssences() {
         if (Rs2GameObject.interact(ObjectID.WORKBENCH_43754)) {
             state = zGotrState.CRAFT_GUARDIAN_ESSENCE;
-            sleep(Random.randomGaussian(random(600, 900), random(150, 300)));
+            sleep(Rs2Random.randomGaussian(Rs2Random.between(600, 900), Rs2Random.between(150, 300)));
             log("Crafting guardian essences...");
             return true;
         }
@@ -339,7 +401,10 @@ public class zGotrScript extends Script {
     }
 
     private boolean leaveLargeMine() {
-        if (isInLargeMine()) {
+        //TODO enter/exit bug, do something here to leave if shouldMineGuardianRemains is false, OR if guardian power...
+        //@@@@@
+        //TODO problems created when other functions are depending on this returning true
+        if (isInLargeMine() /*&& (Rs2Inventory.hasItemAmount(GUARDIAN_FRAGMENTS, fragmentnum) || Microbot.getClient().hasHintArrow()) && ((getGuardiansPower() < 98 && getGuardiansPower() > 11) || nextGameStart.isPresent())*/) {
             Rs2GameObject.interact(ObjectID.RUBBLE_43726);
             Rs2Player.waitForAnimation();
             log("Leaving large mine...");
@@ -352,42 +417,49 @@ public class zGotrScript extends Script {
     private boolean fillPouches() {
         if (Rs2Inventory.isFull() && Rs2Inventory.anyPouchEmpty() && getGuardiansPower() < 90) {
             Rs2Inventory.fillPouches();
-            sleep(Random.randomGaussian(random(600, 900), random(150, 300)));
+            Rs2Inventory.waitForInventoryChanges(600);
+            //TODO trying to fix fill pouch loop
+            if (Rs2Inventory.isFull()) Rs2Inventory.checkPouches();
+            sleep(Rs2Random.randomGaussian(Rs2Random.between(600, 900), Rs2Random.between(150, 300)));
             return true;
         }
         return false;
     }
-
+    //TODO this causing bug of leaving after getting any fragments
     private boolean isOutOfFragments() {
-        if (!Rs2Inventory.hasItem(GUARDIAN_FRAGMENTS) && !Rs2Inventory.isFull()) {
-            shouldMineGuardianRemains = true;
+        if ((!Rs2Inventory.hasItemAmount(GUARDIAN_FRAGMENTS, fragmentnum) && !Rs2Inventory.isFull()) || (getTimeSincePortal() > 85 && !Rs2Inventory.hasItem(GUARDIAN_ESSENCE))) {
+            //TODO issue is being out of fragments at the end of game, our character runs to the mine for fragments, leaves, re-enters, etc.
+            shouldMineGuardianRemains = true;//out of fragments, maybe here?
             log("Memorize that we no longer have guardian fragments...");
             return true;
         }
+        shouldMineGuardianRemains = false;
         return false;
     }
 
     private boolean craftRunes() {
-        if (!isInMainRegion()) {
+        if (!isInMainRegion() && isInMiniGame()) {
             TileObject rcAltar = findRcAltar();
             if (rcAltar != null) {
                 if (Rs2Player.isWalking()) return true;
+                //TODO bug somewhere here?...
                 if (Rs2Inventory.anyPouchFull() && !Rs2Inventory.isFull()) {
                     Rs2Inventory.emptyPouches();
-                    sleep(Random.randomGaussian(600, 150));
+                    Rs2Inventory.waitForInventoryChanges(5000);
+                    sleep(Rs2Random.randomGaussian(350, 150));
                 }
                 if (Rs2Inventory.hasItem(GUARDIAN_ESSENCE)) {
                     state = zGotrState.CRAFTING_RUNES;
                     Rs2GameObject.interact(rcAltar.getId());
                     log("Crafting runes on altar " + rcAltar.getId());
-                    sleep(Random.randomGaussian(random(1000, 1500), 300));
-                } else if (!Rs2Player.isWalking()) {
+                    sleep(Rs2Random.randomGaussian(Rs2Random.between(1000, 1500), 300));
+                } else if (!Rs2Player.isWalking() && (!Rs2Inventory.hasItem(GUARDIAN_ESSENCE) || !Rs2Inventory.anyPouchFull())) {
                     state = zGotrState.LEAVING_ALTAR;
                     TileObject rcPortal = findPortalToLeaveAltar();
                     if (Rs2GameObject.interact(rcPortal.getId())) {
                         log("Leaving the altar...");
-                        sleepUntil(zGotrScript::isInMainRegion, 5000);
-                        sleepGaussian(600, 150);
+                        sleepUntilTrue(zGotrScript::isInMainRegion,100,10000);
+                        sleep(Rs2Random.randomGaussian(750, 150));
                     }
                 }
                 return true;
@@ -397,10 +469,12 @@ public class zGotrScript extends Script {
     }
 
     private static boolean waitForMinigameToStart() {
-        TileObject rcPortal = findPortalToLeaveAltar();
-        if (rcPortal != null && Rs2GameObject.interact(rcPortal.getId())) {
-            state = zGotrState.LEAVING_ALTAR;
-            return true;
+        if (!isInMainRegion()) {
+            TileObject rcPortal = findPortalToLeaveAltar();
+            if (rcPortal != null && Rs2GameObject.interact(rcPortal.getId())) {
+                state = zGotrState.LEAVING_ALTAR;
+                return true;
+            }
         }
         resetPlugin();
         if (state != zGotrState.WAITING) {
@@ -415,7 +489,7 @@ public class zGotrScript extends Script {
         if (Rs2GameObject.interact(ObjectID.BARRIER_43700, "quick-pass")) {
             Rs2Player.waitForWalking();
             state = zGotrState.ENTER_GAME;
-            zGotrScript.shouldMineGuardianRemains = true;
+            shouldMineGuardianRemains = true;//enter minigame
             log("Entering game...");
             return true;
         }
@@ -425,30 +499,36 @@ public class zGotrScript extends Script {
     private void checkPouches(boolean anyPouchUnknown, int mean, int stddev) {
         if (anyPouchUnknown) {
             Rs2Inventory.checkPouches();
-            sleep(randomGaussian(mean, stddev));
+            sleep(Rs2Random.randomGaussian(mean, stddev));
         }
     }
 
     private boolean mineHugeGuardianRemain() {
         if (isInHugeMine()) {
-            if (getStartTimer() == -1) {
+            if (getGuardiansPower() == 0) {
                 repairPouches();
+                leaveHugeMine();
                 return false;
             }
             if (!Rs2Inventory.isFull()) {
                 if (!Rs2Player.isAnimating()) {
                     Rs2GameObject.interact(ObjectID.HUGE_GUARDIAN_REMAINS);
+                    //TODO not sure if this will fix the double click bug
+                    if (!Rs2Player.isMoving()) { boolean walki = sleepUntilTrue(() -> Rs2Player.isMoving() || Rs2Player.isAnimating(), 100, 5000); }
+                    if (Rs2Player.isMoving()) { boolean walki = sleepUntilTrue(() -> !Rs2Player.isMoving(), 100, 5000); }
                     Rs2Player.waitForAnimation();
-                    Rs2GameObject.interact(ObjectID.HUGE_GUARDIAN_REMAINS);
+                    if (!Rs2Player.isAnimating())
+                        Rs2GameObject.interact(ObjectID.HUGE_GUARDIAN_REMAINS);
                 }
             } else {
                 if (Rs2Inventory.allPouchesFull()) {
-                    Rs2GameObject.interact(38044);
-                    Rs2Player.waitForWalking();
+                    leaveHugeMine();
                 } else {
                     Rs2Inventory.fillPouches();
-                    sleep(randomGaussian(random(1000, 1500), random(100, 300)));
-                    Rs2GameObject.interact(ObjectID.HUGE_GUARDIAN_REMAINS);
+                    sleep(Rs2Random.randomGaussian(Rs2Random.between(600, 1200), Rs2Random.between(100, 300)));
+                    if (!Rs2Inventory.isFull()) {
+                        Rs2GameObject.interact(ObjectID.HUGE_GUARDIAN_REMAINS);
+                    }
                 }
             }
             return true;
@@ -457,28 +537,31 @@ public class zGotrScript extends Script {
     }
 
     private void mineGuardianRemains() {
+        if (Microbot.getClient().hasHintArrow())
+            return;
         if (Rs2Inventory.isFull()) {
             shouldMineGuardianRemains = false;
             return;
         }
         state = zGotrState.MINE_LARGE_GUARDIAN_REMAINS;
         if (isInHugeMine()) {
-            Rs2GameObject.interact(38044);
-            Rs2Player.waitForWalking();
-            log("Leave huge mine...");
+            leaveHugeMine();
             return;
         }
-        if (Rs2Player.getSkillRequirement(Skill.AGILITY, 56)) {
-            if (!isInLargeMine() && (!Rs2Inventory.hasItem(GUARDIAN_FRAGMENTS) || getStartTimer() == -1)) {
+        if (Rs2Player.getSkillRequirement(Skill.AGILITY, 56) && getTimeSincePortal() < 85) {
+            //TODO something here to fix guardian fragments, might need to set it at the same time we set our number for uncharged cells
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+            if (!isInLargeMine() && !isInHugeMine() && (!Rs2Inventory.hasItemAmount(GUARDIAN_FRAGMENTS, fragmentnum) || getStartTimer() == -1)) {
                 if (Rs2Walker.walkTo(new WorldPoint(3632, 9503, 0), 20)) {
                     log("Traveling to large mine...");
                     Rs2GameObject.interact(ObjectID.RUBBLE_43724);
                     if (sleepUntil(Rs2Player::isAnimating)) {
                         sleepUntil(this::isInLargeMine);
                         if (isInLargeMine()) {
-                            sleep(randomGaussian(random(2500, 3000), random(100, 300)));
+                            sleep(Rs2Random.randomGaussian(Rs2Random.between(2000, 2400), Rs2Random.between(100, 300)));
                             log("Interacting with large guardian remains...");
                             Rs2GameObject.interact(ObjectID.LARGE_GUARDIAN_REMAINS);
+                            sleepGaussian(1200, 150);
                         }
                     }
                 }
@@ -488,10 +571,11 @@ public class zGotrScript extends Script {
                     if (Rs2Equipment.isWearing("dragon pickaxe")) {
                         Rs2Combat.setSpecState(true, 1000);
                     }
-                    checkPouches(random(1, 20) == 2, random(100, 600), random(100, 300));
+                    checkPouches(Rs2Random.between(1, 20) == 2, Rs2Random.between(100, 600), Rs2Random.between(100, 300));
 
                     repairPouches();
                     Rs2GameObject.interact(ObjectID.LARGE_GUARDIAN_REMAINS);
+                    sleepGaussian(1200, 150);
                     // we can assume that if the player is mining within the startTimer range, he will get enough guardian remains for the game
                     shouldMineGuardianRemains = false;
                 }
@@ -499,24 +583,67 @@ public class zGotrScript extends Script {
         } else {
             //guardian parts
             if (!Rs2Player.isAnimating() && getStartTimer() != -1) {
+                if(isInLargeMine()) {
+                    int i = 0;
+                    while (i<5) {
+                        System.out.println("//maybe?");
+                        i++;
+                    }
+                    leaveLargeMine();//maybe?
+                }
                 if (Rs2Equipment.isWearing("dragon pickaxe")) {
                     Rs2Combat.setSpecState(true, 1000);
                 }
                 repairPouches();
                 Rs2GameObject.interact(ObjectID.GUARDIAN_PARTS_43716);
+                sleepGaussian(1200, 150);
+                //TODO might be something here????? fucker
                 // we can assume that if the player is mining within the startTimer range, he will get enough guardian remains for the game
-                shouldMineGuardianRemains = false;
+                if (Rs2Inventory.hasItemAmount(GUARDIAN_FRAGMENTS, fragmentnum)) shouldMineGuardianRemains = false;//this might be our issue
             }
         }
-        boolean mining = sleepUntilTrue(() -> Microbot.isGainingExp || Rs2Inventory.waitForInventoryChanges(random(60,200)) || !Rs2Player.isAnimating(random(600,900)), random(67,97), random(3000,6000));
+        boolean mining = sleepUntilTrue(() -> Microbot.isGainingExp || Rs2Inventory.waitForInventoryChanges(Rs2Random.between(60,200)) || !Rs2Player.isAnimating(Rs2Random.between(600,900)), Rs2Random.between(67,97), Rs2Random.between(3000,6000));
         sleep(97,291);
     }
-    //TODO not fond of how method "Rs2Magic.repairPouchesWithLunar()" is handled, goes off hard-coded set delayed times. needs to check the dialogue window each time before pressing continue and some way to restart if interrupted.
+
+    private void leaveHugeMine() {
+        Rs2GameObject.interact(38044);
+        log("Leave huge mine...");
+        Global.sleepUntil(() -> !isInHugeMine(), 5000);
+
+    }
+
     private static boolean repairPouches() {
+        if (!useNpcContact) {
+            repairWithCordelia();
+            return true;
+        }
         if (Rs2Inventory.hasDegradedPouch()) {
             return Rs2Magic.repairPouchesWithLunar();
         }
         return false;
+    }
+
+    /**
+     * Repair pouch by talking to cordelia
+     * make sure to have the repair unlocked for 25 pearls
+     */
+    private static void repairWithCordelia() {
+        if (!Rs2Inventory.hasDegradedPouch()) return;
+        if (!Rs2Inventory.hasItem(ItemID.ABYSSAL_PEARLS)) return;
+        NPC pouchRepairNpc = Rs2Npc.getNpc(NpcID.APPRENTICE_CORDELIA_12180);
+        if (pouchRepairNpc == null) return;
+        if (!Rs2Npc.hasAction(pouchRepairNpc.getId(), "Repair")) return;
+        if (!Rs2Npc.canWalkTo(pouchRepairNpc, 10)) return;
+        if (!Rs2Npc.interact(pouchRepairNpc, "Repair")) return;
+
+        Microbot.log("Repairing pouches...");
+
+        Global.sleepUntil(() -> {
+            Rs2Dialogue.clickContinue();
+            return !Rs2Inventory.hasDegradedPouch();
+        }, 10000);
+
     }
 
     @Override
@@ -531,14 +658,14 @@ public class zGotrScript extends Script {
                 && Rs2Player.getWorldLocation().getRegionID() == 14484;
     }
 
-    public boolean isInLargeMine() {
+    public  boolean isInLargeMine() {
         int largeMineX = 3637;
         return Rs2Player.getWorldLocation().getRegionID() == 14484
                 && Microbot.getClient().getLocalPlayer().getWorldLocation().getX() >= largeMineX;
     }
 
-    public boolean isInHugeMine() {
-        int hugeMineX = 3593;
+    public  boolean isInHugeMine() {
+        int hugeMineX = 3594;
         return Rs2Player.getWorldLocation().getRegionID() == 14484
                 && Microbot.getClient().getLocalPlayer().getWorldLocation().getX() <= hugeMineX;
     }
@@ -580,6 +707,15 @@ public class zGotrScript extends Script {
             }
         }
         return -1;
+    }
+
+    public static int getTimeSincePortal() {
+        if(getStartTimer() == -1) {
+            return -1;
+        }
+        int firstPortalTimeAdjustment = isFirstPortal ? 40 : 0;
+        return timeSincePortal.map(instant -> (int) ChronoUnit.SECONDS.between(instant, Instant.now())-firstPortalTimeAdjustment).orElse(-1);
+
     }
 
     public static List<GameObject> getAvailableAltars() {
@@ -648,7 +784,8 @@ public class zGotrScript extends Script {
     public static void checkChangedStates(){
         if (previousState!=state){
             previousState=state;
-            unchrgcellrandom=random(2,10);
+            unchrgcellrandom=Rs2Random.between(2,9);
+            fragmentnum = Rs2Random.between(10,24);
         }
     }
 }

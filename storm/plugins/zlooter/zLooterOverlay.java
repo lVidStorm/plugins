@@ -1,5 +1,4 @@
-package net.runelite.client.plugins.microbot.storm.plugins.blackjack;
-
+package net.runelite.client.plugins.microbot.storm.plugins.zlooter;
 
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.ui.overlay.OverlayPanel;
@@ -10,9 +9,10 @@ import net.runelite.client.ui.overlay.components.TitleComponent;
 import javax.inject.Inject;
 import java.awt.*;
 
-public class BlackJackOverlay extends OverlayPanel {
+public class zLooterOverlay extends OverlayPanel {
+
     @Inject
-    BlackJackOverlay(BlackJackPlugin plugin)
+    zLooterOverlay(zLooterPlugin plugin)
     {
         super(plugin);
         setPosition(OverlayPosition.TOP_LEFT);
@@ -23,7 +23,7 @@ public class BlackJackOverlay extends OverlayPanel {
         try {
             panelComponent.setPreferredSize(new Dimension(200, 300));
             panelComponent.getChildren().add(TitleComponent.builder()
-                    .text("Blackjack thieving training : " + BlackJackScript.version)
+                    .text("Micro Example V1.0.0")
                     .color(Color.GREEN)
                     .build());
 

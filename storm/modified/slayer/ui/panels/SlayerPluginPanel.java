@@ -14,12 +14,10 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
-import java.util.Date;
 import java.util.List;
 
-public class BanksSlayerPluginPanel extends PluginPanel {
+public class SlayerPluginPanel extends PluginPanel {
     private CurrentSessionPanel currentSessionPanel;
     private SessionHistoryPanel sessionHistoryPanel;
     private TaskEquipmentMappingPanel taskEquipmentMappingPanel;
@@ -31,7 +29,7 @@ public class BanksSlayerPluginPanel extends PluginPanel {
     private boolean isScriptRunning = false; // To track the script state
     private long sessionStartTime;
 
-    public BanksSlayerPluginPanel() {
+    public SlayerPluginPanel() {
         setBackground(ColorScheme.DARK_GRAY_COLOR);
         setLayout(new BorderLayout());
 
@@ -253,7 +251,7 @@ public class BanksSlayerPluginPanel extends PluginPanel {
     }
 
     private ImageIcon loadIcon(String path) {
-        java.net.URL imgURL = getClass().getResource("/net/runelite/client/plugins/BanksSlayer/icons/" + path);
+        java.net.URL imgURL = getClass().getResource("/net/runelite/client/microbot/storm/modified/slayer/icons/" + path);
         if (imgURL != null) {
             return new ImageIcon(imgURL);
         } else {

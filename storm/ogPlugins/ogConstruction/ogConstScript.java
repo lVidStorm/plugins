@@ -21,7 +21,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
+//TODO setup new script separate for mythic capes? / fix script?
+// fix detection of money bag amount, monitor xp gain and stop the script if xp stops, check if inventory is full but lacks required items,
 public class ogConstScript extends Script {
 
     public static double version = 1.0;
@@ -326,7 +327,7 @@ public class ogConstScript extends Script {
         Microbot.status = "Calculating State";
         if(logging){System.out.println("===========================CALC STATE FUNCTION CALLED===========================");}
         if(Microbot.getClientThread().runOnClientThread(() -> Microbot.getClient().getVarbitValue(2176)) == 0){ status = State.ENABLE_BUILDING_MODE; }
-        else if(!(Rs2Inventory.hasItemAmount(furniture.getNotedPlankNameNeeded(),furniture.getPlankAmountNeeded(), true) || Rs2Inventory.hasItemAmount("Coins",10000, true))){status = State.LOGOUT;}
+        else if(!(Rs2Inventory.hasItemAmount(furniture.getNotedPlankNameNeeded(),furniture.getPlankAmountNeeded(), true))){status = State.LOGOUT;}
         else if(moneyBagTopUpNeeded()){status = State.FILL_MONEY_BAG;}
         else if(Rs2GameObject.findObjectByIdAndDistance(furniture.getBuiltID(),20) != null){status = State.DESTROY;}
         else if(!Rs2Inventory.hasItemAmount(furniture.getPlankNeeded(),(furniture.getPlankAmountNeeded()*2)+1) && (currentGameTick > gameTickLastSentButler + (butler.getTicksNeededToBank() + 2) )){status = State.SEND_BUTLER;}

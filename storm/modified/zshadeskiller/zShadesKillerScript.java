@@ -3,6 +3,7 @@ package net.runelite.client.plugins.microbot.storm.modified.zshadeskiller;
 import net.runelite.api.EquipmentInventorySlot;
 import net.runelite.api.NPC;
 import net.runelite.api.Skill;
+import net.runelite.api.World;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.Script;
@@ -173,7 +174,7 @@ public class zShadesKillerScript extends Script {
         }
         Rs2Keyboard.keyPress(KeyEvent.VK_SPACE);
         sleepUntil(() -> Rs2Inventory.hasItem("remains"));
-        sleep(40, 450);
+        sleep(200, 1250);
         if(Rs2Inventory.hasItem("remains") && !Rs2Inventory.isFull()){
             coffinFull = false;
             coffinHasItems = false;
@@ -277,13 +278,18 @@ public class zShadesKillerScript extends Script {
                             sleepUntil(() -> Rs2Bank.isOpen(), 3000);
                             sleep(300, 420);
                         }
-                        if(Rs2Inventory.hasItem("remains")){
+                        //TODO potentially problem here with check inventory for remains, need a new method to check if any names contain "remains"
+                        if(Rs2Inventory.hasItem("remains") || Rs2Inventory.getEmptySlots()<2){
                             System.out.println("Attempting to deposit remains");
                             Rs2Bank.depositAll("remains");
                             sleepUntil(() -> !Rs2Inventory.hasItem("remains"));
                             sleep(220, 300);
                         }
                         sleep(180, 220);
+                        if (coffinHasItems) {
+                            emptyCoffin();
+                            return;
+                        }
                         if (!Rs2Player.isFullHealth()) {
                             Rs2Bank.withdrawX(config.food().getName(), config.foodAmount());
                             sleepUntil(() -> Rs2Inventory.hasItem(config.food().getName()));
@@ -298,10 +304,6 @@ public class zShadesKillerScript extends Script {
                                 sleep(40, 250);
                             }
                             //coffinHasItems=true;
-                            return;
-                        }
-                        if (coffinHasItems) {
-                            emptyCoffin();
                             return;
                         }
                         //TODO issue here, needs to not withdraw items if has items.
@@ -319,10 +321,12 @@ public class zShadesKillerScript extends Script {
                     case USE_TELEPORT_TO_SHADES:
                         if (teleportToShades) {
                             if (Rs2Inventory.hasItem(config.teleportItemToShades())) {
-                                    Rs2Inventory.interact(config.teleportItemToShades(), config.teleportActionToShades());
-                                    Rs2Player.waitForAnimation();
-                                    teleportToShades = false;
-                                    teleportToBank = true;
+                                WorldPoint previousLocation = new WorldPoint(Rs2Player.getWorldLocation().getX(), Rs2Player.getWorldLocation().getY(), Rs2Player.getWorldLocation().getPlane());
+                                Rs2Inventory.interact(config.teleportItemToShades(), config.teleportActionToShades());
+                                if (this.isRunning()) { sleepUntil(() -> Rs2Player.getWorldLocation().distanceTo(previousLocation) > 10); }
+                                //Rs2Player.waitForAnimation();
+                                teleportToShades = false;
+                                teleportToBank = true;
                             }
                         } else {
                             state = State.WALK_TO_SHADES;
@@ -340,8 +344,10 @@ public class zShadesKillerScript extends Script {
 
                         if (inArea(Rs2Player.getWorldLocation(), config.SHADES().Area)) {
                             sleep(61,97);
+                            WorldPoint previousLocation = new WorldPoint(Rs2Player.getWorldLocation().getX(), Rs2Player.getWorldLocation().getY(), Rs2Player.getWorldLocation().getPlane());
                             Rs2Inventory.interact(config.teleportItemToBank(),config.teleportActionToBank());
-                            Rs2Player.waitForAnimation();
+                            if (this.isRunning()) { sleepUntil(() -> Rs2Player.getWorldLocation().distanceTo(previousLocation) > 10); }
+                            //Rs2Player.waitForAnimation();
                             sleep(10000, 11200);
                         }
                         int nextWorld = Worlds.get((Worlds.indexOf(Microbot.getClient().getWorld())+1) % Worlds.size());
@@ -358,10 +364,12 @@ public class zShadesKillerScript extends Script {
                         break;
                     case USE_TELEPORT_TO_BANK:
                          if (teleportToBank){
-                                 Rs2Inventory.interact(config.teleportItemToBank(),config.teleportActionToBank());
-                                 Rs2Player.waitForAnimation();
-                                 teleportToBank = false;
-                                 teleportToShades = true;
+                             WorldPoint previousLocation = new WorldPoint(Rs2Player.getWorldLocation().getX(), Rs2Player.getWorldLocation().getY(), Rs2Player.getWorldLocation().getPlane());
+                             Rs2Inventory.interact(config.teleportItemToBank(),config.teleportActionToBank());
+                             if (this.isRunning()) { sleepUntil(() -> Rs2Player.getWorldLocation().distanceTo(previousLocation) > 10); }
+                             //Rs2Player.waitForAnimation();
+                             teleportToBank = false;
+                             teleportToShades = true;
                         } else {
                             state = State.BANKING;
                         }

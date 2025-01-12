@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.microbot.storm.plugins.blackjack;
+package net.runelite.client.plugins.microbot.storm.plugins.zblackjack;
 
 import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
@@ -24,43 +24,43 @@ import java.util.stream.Collectors;
 
 @PluginDescriptor(
         //name = PluginDescriptor.Default + "Blackjack",
-        name = "<html>[<font color=#ff00ff>§</font>] " + "Blackjack",
-        description = "Pollniveach Blackjack script",
+        name = "<html>[<font color=#ff00ff>§</font>] " + "zBlackjack",
+        description = "Pollniveach zBlackjack script",
         tags = {"Thieving", "StormScript"},
         enabledByDefault = false
 )
 @Slf4j
-public class BlackJackPlugin extends Plugin {
+public class zBlackJackPlugin extends Plugin {
     @Inject
-    private BlackJackConfig config;
+    private zBlackJackConfig config;
     @Inject
     private Client client;
     @Provides
-    BlackJackConfig provideConfig(ConfigManager configManager) {
-        return configManager.getConfig(BlackJackConfig.class);
+    zBlackJackConfig provideConfig(ConfigManager configManager) {
+        return configManager.getConfig(zBlackJackConfig.class);
     }
 
     @Inject
     private OverlayManager overlayManager;
     @Inject
-    private BlackJackOverlay blackJackOverlay;
+    private zBlackJackOverlay blackJackOverlay;
 
     @Inject
 
-    BlackJackScript blackJackScript;
+    zBlackJackScript blackJackScript;
 
     @Subscribe
     public void onHitsplatApplied(HitsplatApplied event) {
         if (event.getHitsplat().isMine())
         {
-            if(BlackJackScript.playerHit==0 || Microbot.getClient().getSkillExperience(Skill.THIEVING)>BlackJackScript.hitsplatXP || BlackJackScript.koPassed){
-                BlackJackScript.firstHit=true;
-                BlackJackScript.hitsplatXP = Microbot.getClient().getSkillExperience(Skill.THIEVING);
-                BlackJackScript.hitsplatStart = System.currentTimeMillis();
-                BlackJackScript.playerHit=0;
-                BlackJackScript.koPassed=false;
+            if(zBlackJackScript.playerHit==0 || Microbot.getClient().getSkillExperience(Skill.THIEVING)> zBlackJackScript.hitsplatXP || zBlackJackScript.koPassed){
+                zBlackJackScript.firstHit=true;
+                zBlackJackScript.hitsplatXP = Microbot.getClient().getSkillExperience(Skill.THIEVING);
+                zBlackJackScript.hitsplatStart = System.currentTimeMillis();
+                zBlackJackScript.playerHit=0;
+                zBlackJackScript.koPassed=false;
             }
-            BlackJackScript.playerHit++;
+            zBlackJackScript.playerHit++;
             if(config.soundHitSplats()) { client.playSoundEffect(3929, 127); }
         }
     }
@@ -68,7 +68,7 @@ public class BlackJackPlugin extends Plugin {
     public void onChatMessage(ChatMessage chatMessage) {
         if (chatMessage.getType() == ChatMessageType.GAMEMESSAGE) {
             if(chatMessage.getMessage().contains("Perhaps I shouldn't do this just yet.")){
-                BlackJackScript.npcsCanSeeEachother = true;
+                zBlackJackScript.npcsCanSeeEachother = true;
                 //System.out.println("detected multiple NPCs");
             }
         }
@@ -78,13 +78,13 @@ public class BlackJackPlugin extends Plugin {
         List<Player> dangerousPlayers = getPlayersInRange().stream().filter(this::shouldPlayerCauseConcern).collect(Collectors.toList());
         boolean shouldAlarm = (dangerousPlayers.size() > 0);
         if (shouldAlarm) {
-            if (!BlackJackScript.isPlayerNearby){
-                BlackJackScript.isPlayerNearby = true;
+            if (!zBlackJackScript.isPlayerNearby){
+                zBlackJackScript.isPlayerNearby = true;
             }
         }
         if (!shouldAlarm) {
-            if (BlackJackScript.isPlayerNearby){
-                BlackJackScript.isPlayerNearby = false;
+            if (zBlackJackScript.isPlayerNearby){
+                zBlackJackScript.isPlayerNearby = false;
             }
         }
     }

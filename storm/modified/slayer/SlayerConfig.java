@@ -1,12 +1,10 @@
 package net.runelite.client.plugins.microbot.storm.modified.slayer;
 
-import net.runelite.client.config.Config;
-import net.runelite.client.config.ConfigGroup;
-import net.runelite.client.config.ConfigItem;
-import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.*;
 import net.runelite.client.plugins.microbot.storm.modified.slayer.enums.SlayerMasters;
 
-@ConfigGroup("banksSlayer")
+@ConfigGroup("Slayer")
+@ConfigInformation("Original script by Bank")
 public interface SlayerConfig extends Config {
 
     @ConfigSection(

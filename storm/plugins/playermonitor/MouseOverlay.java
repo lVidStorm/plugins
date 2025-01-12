@@ -25,7 +25,7 @@ public class MouseOverlay extends OverlayPanel {
         this.panelComponent.setPreferredSize(new Dimension(getSize(graphics) + 15, 0));
         if (!config.hideClickCounter()) {
             this.panelComponent.getChildren().add(LineComponent.builder()
-                    .left("Clicks: ")
+                    .left("Left Clicks: ")
                     .right("" + this.plugin.getLeftClickCounter())
                     .build());
         }
@@ -35,7 +35,7 @@ public class MouseOverlay extends OverlayPanel {
         int configSize = 0;
         ArrayList<Integer> currentSelections = new ArrayList<>();
         if (!this.config.hideClickCounter()) {
-            String leftString = "Clicks: " + this.plugin.getLeftClickCounter();
+            String leftString = "Left: " + this.plugin.getLeftClickCounter();
             int leftSize = graphics.getFontMetrics().stringWidth(leftString);
             configSize = Math.max(configSize, leftSize);
             currentSelections.add(Integer.valueOf(1));

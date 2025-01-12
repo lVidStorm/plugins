@@ -104,19 +104,19 @@ public class zGotrPlugin extends Plugin {
             zGotrScript.nextGameStart = Optional.empty();
             zGotrScript.state = zGotrState.ENTER_GAME;
         } else if (msg.contains("The rift will become active in 30 seconds.")) {
-            zGotrScript.shouldMineGuardianRemains = true;
+            zGotrScript.shouldMineGuardianRemains = true;//30s
             zGotrScript.nextGameStart = Optional.of(Instant.now().plusSeconds(30));
         } else if (msg.contains("The rift will become active in 10 seconds.")) {
-            zGotrScript.shouldMineGuardianRemains = true;
+            zGotrScript.shouldMineGuardianRemains = true;//10s
             zGotrScript.nextGameStart = Optional.of(Instant.now().plusSeconds(10));
         } else if (msg.contains("The rift will become active in 5 seconds.")) {
-            zGotrScript.shouldMineGuardianRemains = true;
+            zGotrScript.shouldMineGuardianRemains = true;//5s
             zGotrScript.nextGameStart = Optional.of(Instant.now().plusSeconds(5));
         } else if (msg.contains("The Portal Guardians will keep their rifts open for another 30 seconds.")) {
-            zGotrScript.shouldMineGuardianRemains = true;
+            zGotrScript.shouldMineGuardianRemains = true;//start
             zGotrScript.nextGameStart = Optional.of(Instant.now().plusSeconds(60));
         }else if (msg.toLowerCase().contains("closed the rift!") || msg.toLowerCase().contains("The great guardian was defeated!")) {
-            zGotrScript.shouldMineGuardianRemains = true;
+            zGotrScript.shouldMineGuardianRemains = true;//end
         }
 
         Matcher rewardPointMatcher = zGotrScript.rewardPointPattern.matcher(msg);

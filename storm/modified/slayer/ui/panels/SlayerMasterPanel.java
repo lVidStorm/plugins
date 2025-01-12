@@ -91,7 +91,7 @@ public class SlayerMasterPanel extends JPanel {
     }
 
     private ImageIcon loadIcon(String path) {
-        java.net.URL imgURL = getClass().getResource("/net/runelite/client/plugins/BanksSlayer/icons/" + path);
+        java.net.URL imgURL = getClass().getResource("/net/runelite/client/microbot/storm/modified/slayer/icons/" + path);
         if (imgURL != null) {
             return new ImageIcon(imgURL);
         } else {

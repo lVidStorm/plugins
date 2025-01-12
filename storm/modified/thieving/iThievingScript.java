@@ -41,7 +41,7 @@ public class iThievingScript extends Script {
                     initialPlayerLocation = Rs2Player.getWorldLocation();
                 }
 
-                if (isStunned())
+                if (Rs2Player.isStunned())
                     return;
 
                 List<Rs2Item> foods = Rs2Inventory.getInventoryFood();
@@ -133,10 +133,6 @@ public class iThievingScript extends Script {
                 }
             }
         }
-    }
-
-    private boolean isStunned() {
-        return Microbot.isTimerActive(GameTimer.PICKPOCKET_STUN);
     }
 
     private void handleShadowVeil() {
